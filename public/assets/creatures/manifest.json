@@ -1,0 +1,484 @@
+{
+  "creatures": [
+    {
+      "id": "or01",
+      "skinType": 2,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 14,
+      "file": "or01/or01.json"
+    },
+    {
+      "id": "wb01",
+      "skinType": 3,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 13,
+      "file": "wb01/wb01.json"
+    },
+    {
+      "id": "mi01",
+      "skinType": 4,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 8,
+      "file": "mi01/mi01.json"
+    },
+    {
+      "id": "sq01",
+      "skinType": 5,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 11,
+      "file": "sq01/sq01.json"
+    },
+    {
+      "id": "cb01",
+      "skinType": 6,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 7,
+      "file": "cb01/cb01.json"
+    },
+    {
+      "id": "mo01",
+      "skinType": 7,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 7,
+      "file": "mo01/mo01.json"
+    },
+    {
+      "id": "bm01",
+      "skinType": 8,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 12,
+      "file": "bm01/bm01.json"
+    },
+    {
+      "id": "or02",
+      "skinType": 9,
+      "parts": 1,
+      "expectedParts": 8,
+      "motions": 6,
+      "file": "or02/or02.json"
+    },
+    {
+      "id": "bm02",
+      "skinType": 10,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 8,
+      "file": "bm02/bm02.json"
+    },
+    {
+      "id": "et01",
+      "skinType": 11,
+      "parts": 5,
+      "expectedParts": 8,
+      "motions": 6,
+      "file": "et01/et01.json"
+    },
+    {
+      "id": "rc01",
+      "skinType": 12,
+      "parts": 2,
+      "expectedParts": 8,
+      "motions": 8,
+      "file": "rc01/rc01.json"
+    },
+    {
+      "id": "dr01",
+      "skinType": 20,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 8,
+      "file": "dr01/dr01.json"
+    },
+    {
+      "id": "gr01",
+      "skinType": 21,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 9,
+      "file": "gr01/gr01.json"
+    },
+    {
+      "id": "cr01",
+      "skinType": 22,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 7,
+      "file": "cr01/cr01.json"
+    },
+    {
+      "id": "wh01",
+      "skinType": 23,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 3,
+      "file": "wh01/wh01.json"
+    },
+    {
+      "id": "bd01",
+      "skinType": 24,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 6,
+      "file": "bd01/bd01.json"
+    },
+    {
+      "id": "bo01",
+      "skinType": 25,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 5,
+      "file": "bo01/bo01.json"
+    },
+    {
+      "id": "hy01",
+      "skinType": 26,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 7,
+      "file": "hy01/hy01.json"
+    },
+    {
+      "id": "sn01",
+      "skinType": 27,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 5,
+      "file": "sn01/sn01.json"
+    },
+    {
+      "id": "wf01",
+      "skinType": 28,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 6,
+      "file": "wf01/wf01.json"
+    },
+    {
+      "id": "be01",
+      "skinType": 29,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 9,
+      "file": "be01/be01.json"
+    },
+    {
+      "id": "tw01",
+      "skinType": 30,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 7,
+      "file": "tw01/tw01.json"
+    },
+    {
+      "id": "hs01",
+      "skinType": 31,
+      "parts": 2,
+      "expectedParts": 3,
+      "motions": 10,
+      "file": "hs01/hs01.json"
+    },
+    {
+      "id": "ag01",
+      "skinType": 32,
+      "parts": 1,
+      "expectedParts": 4,
+      "motions": 1,
+      "file": "ag01/ag01.json"
+    },
+    {
+      "id": "to01",
+      "skinType": 33,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 2,
+      "file": "to01/to01.json"
+    },
+    {
+      "id": "ra01",
+      "skinType": 34,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 6,
+      "file": "ra01/ra01.json"
+    },
+    {
+      "id": "sp01",
+      "skinType": 35,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 8,
+      "file": "sp01/sp01.json"
+    },
+    {
+      "id": "gb01",
+      "skinType": 36,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 8,
+      "file": "gb01/gb01.json"
+    },
+    {
+      "id": "bn01",
+      "skinType": 37,
+      "parts": 4,
+      "expectedParts": 4,
+      "motions": 4,
+      "file": "bn01/bn01.json"
+    },
+    {
+      "id": "tg01",
+      "skinType": 38,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 7,
+      "file": "tg01/tg01.json"
+    },
+    {
+      "id": "dr02",
+      "skinType": 39,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 7,
+      "file": "dr02/dr02.json"
+    },
+    {
+      "id": "bd02",
+      "skinType": 40,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 8,
+      "file": "bd02/bd02.json"
+    },
+    {
+      "id": "gg01",
+      "skinType": 41,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 11,
+      "file": "gg01/gg01.json"
+    },
+    {
+      "id": "bt01",
+      "skinType": 42,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 8,
+      "file": "bt01/bt01.json"
+    },
+    {
+      "id": "fn01",
+      "skinType": 43,
+      "parts": 1,
+      "expectedParts": 2,
+      "motions": 9,
+      "file": "fn01/fn01.json"
+    },
+    {
+      "id": "bl01",
+      "skinType": 44,
+      "parts": 4,
+      "expectedParts": 4,
+      "motions": 4,
+      "file": "bl01/bl01.json"
+    },
+    {
+      "id": "lb01",
+      "skinType": 45,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 8,
+      "file": "lb01/lb01.json"
+    },
+    {
+      "id": "lk01",
+      "skinType": 46,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 7,
+      "file": "lk01/lk01.json"
+    },
+    {
+      "id": "dd01",
+      "skinType": 47,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 6,
+      "file": "dd01/dd01.json"
+    },
+    {
+      "id": "cp01",
+      "skinType": 48,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 5,
+      "file": "cp01/cp01.json"
+    },
+    {
+      "id": "kk01",
+      "skinType": 49,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 6,
+      "file": "kk01/kk01.json"
+    },
+    {
+      "id": "mc01",
+      "skinType": 50,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 5,
+      "file": "mc01/mc01.json"
+    },
+    {
+      "id": "ct01",
+      "skinType": 51,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 5,
+      "file": "ct01/ct01.json"
+    },
+    {
+      "id": "sp02",
+      "skinType": 53,
+      "parts": 3,
+      "expectedParts": 3,
+      "motions": 6,
+      "file": "sp02/sp02.json"
+    },
+    {
+      "id": "sh01",
+      "skinType": 60,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "sh01/sh01.json"
+    },
+    {
+      "id": "fl01",
+      "skinType": 62,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "fl01/fl01.json"
+    },
+    {
+      "id": "tr03",
+      "skinType": 65,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr03/tr03.json"
+    },
+    {
+      "id": "tr05",
+      "skinType": 67,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr05/tr05.json"
+    },
+    {
+      "id": "tr06",
+      "skinType": 68,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr06/tr06.json"
+    },
+    {
+      "id": "bf01",
+      "skinType": 69,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "bf01/bf01.json"
+    },
+    {
+      "id": "fs01",
+      "skinType": 70,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "fs01/fs01.json"
+    },
+    {
+      "id": "tr07",
+      "skinType": 71,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr07/tr07.json"
+    },
+    {
+      "id": "tr08",
+      "skinType": 72,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr08/tr08.json"
+    },
+    {
+      "id": "tr10",
+      "skinType": 74,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr10/tr10.json"
+    },
+    {
+      "id": "tr11",
+      "skinType": 75,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr11/tr11.json"
+    },
+    {
+      "id": "tr13",
+      "skinType": 77,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr13/tr13.json"
+    },
+    {
+      "id": "tr18",
+      "skinType": 82,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 1,
+      "file": "tr18/tr18.json"
+    },
+    {
+      "id": "mt01",
+      "skinType": 85,
+      "parts": 1,
+      "expectedParts": 1,
+      "motions": 5,
+      "file": "mt01/mt01.json"
+    },
+    {
+      "id": "wg01",
+      "skinType": 86,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 0,
+      "file": "wg01/wg01.json"
+    },
+    {
+      "id": "tr21",
+      "skinType": 87,
+      "parts": 2,
+      "expectedParts": 2,
+      "motions": 1,
+      "file": "tr21/tr21.json"
+    }
+  ]
+}
