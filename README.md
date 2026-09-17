@@ -83,7 +83,7 @@ A referência https://idlewyd.xyz/ foi consultada apenas na tela pública de log
 
 ## Git
 
-O Git deve ser inicializado dentro desta pasta `web-port`, que é o projeto versionável. Não inclua `node_modules`, `dist` ou logs.
+O Git fica dentro desta pasta `web-port`; o nome do projeto é `wyd-web-client`. Não inclua `node_modules`, `dist` ou logs.
 
 ```powershell
 git init
