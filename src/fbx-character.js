@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 
 export async function loadTheodoreCharacter(renderer){
-  const base='/assets/characters/theodore/BB_Theodore/',loader=new FBXLoader(),model=await loader.loadAsync(base+'SK_Theodore_RIGGED_V5.fbx');
+  const base='/assets/characters/theodore/BB_Theodore/',loader=new FBXLoader(),model=await loader.loadAsync(base+'SK_Theodore_V2.fbx');
   const textures=new THREE.TextureLoader(),[color,normal,arm]=await Promise.all([
     textures.loadAsync(base+'T_Theodore.png').catch(()=>null),
     textures.loadAsync(base+'T_Theodore_N.png').catch(()=>null),
