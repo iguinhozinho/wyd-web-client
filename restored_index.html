@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WYD Idle 3D — With Your Destiny</title>
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/lobby.css">
+</head>
+<body>
+<main id="game">
+  <!-- 3D Canvas Viewport -->
+  <div id="viewport">
+    <div id="loading">Conectando a Armia...</div>
+  </div>
+
+  <!-- Container para Textos de Combate Flutuantes (Dano, Cura, EXP, Ouro) -->
+  <div id="floating-combat"></div>
+
+  <!-- Tela de Seleção de Personagem (Lobby) -->
+  <section id="lobby">
+    <div class="lobby-logo">
+      <span>WITH YOUR DESTINY</span>
+      <h1>WYD</h1>
+      <b>IDLE 3D</b>
+    </div>
+    <p>Selecione seu herói e entre no mundo de Kersef.</p>
+    
+    <div class="character-selection-cards">
+      <!-- Boss Baby (Theodore) -->
+      <div class="char-select-card selected" data-character="theodore">
+        <div class="card-badge">ESPECIAL</div>
+        <div class="card-avatar theodore-avatar">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/><path d="M19 14v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        </div>
+        <div class="card-meta">
+          <strong>Boss Baby</strong>
+          <span>Theodore · Terno & Óculos</span>
+        </div>
+        <div class="card-status-pill">SELECIONADO</div>
+      </div>
+
+      <!-- TransKnight -->
+      <div class="char-select-card" data-character="transknight">
+        <div class="card-badge">CLÁSSICO</div>
+        <div class="card-avatar transknight-avatar">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 17.5 3 3a2.121 2.121 0 0 0 3-3l-3-3"/><path d="m6 17.5-3 3a2.121 2.121 0 0 0 3 3l3-3"/><path d="m15.5 9L9 15.5"/><path d="M6 21v-3"/><path d="M21 6h-3"/><path d="M3 3l18 18"/></svg>
+        </div>
+        <div class="card-meta">
+          <strong>TransKnight</strong>
+          <span>Guerreiro Nobre de Armia</span>
+        </div>
+        <div class="card-status-pill">DISPONÍVEL</div>
+      </div>
+
+      <!-- Foema -->
+      <div class="char-select-card" data-character="foema">
+        <div class="card-badge">CLÁSSICO</div>
+        <div class="card-avatar foema-avatar">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="card-meta">
+          <strong>Foema</strong>
+          <span>Maga Elemental de Kersef</span>
+        </div>
+        <div class="card-status-pill">DISPONÍVEL</div>
+      </div>
+    </div>
+
+    <button id="enter-world" class="btn-wyd-primary">
+      ENTRAR NO MUNDO
+    </button>
+  </section>
+
+  <!-- Barra Superior Minimalista e Completa -->
+  <header id="topbar">
+    <div class="top-brand">
+      <div class="top-logo-badge">WYD</div>
+      <div class="top-char-pill">
+        <span id="top-char-name">Boss Baby</span>
+        <b id="top-char-lvl">Nv. 1</b>
+      </div>
+    </div>
+
+    <div class="top-center-stats">
+      <div class="stat-pill gold-pill" title="Ouro total">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e5b022" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="rgba(229,176,34,0.15)"/><circle cx="12" cy="12" r="5"/><path d="M12 7v10"/></svg>
+        <span id="gold">0</span>
+      </div>
+
+      <div class="stat-pill location-pill">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <strong id="current-zone-name">Armia</strong>
+        <small id="player-coords">2101, 2094</small>
+      </div>
+
+      <div class="select-wrapper zone-select">
+        <select id="map" aria-label="Região"></select>
+      </div>
+    </div>
+
+    <div class="top-quick-actions">
+      <button id="btn-center" class="icon-tool-btn" title="Centralizar Câmera">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+      </button>
+
+      <button id="btn-sound" class="icon-tool-btn" title="Alternar Som">
+        <svg id="svg-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <svg id="svg-sound-off" class="is-hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>
+      </button>
+
+      <button id="btn-switch-hero" class="btn-text-action" title="Trocar de Personagem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>TROCAR</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Dock Flutuante de Menus (Esquerda) -->
+  <aside id="side-dock">
+    <button class="dock-btn" id="btn-dock-status" title="Personagem & Atributos [C]">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>STATUS</span>
+    </button>
+
+    <button class="dock-btn" id="btn-dock-inv" title="Inventário & Equipamentos [V]">
+      <div class="dock-icon-wrapper">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        <b class="dock-badge" id="dock-inv-count">0</b>
+      </div>
+      <span>INVENTÁRIO</span>
+    </button>
+
+    <button class="dock-btn" id="btn-dock-skills" title="Habilidades [K]">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>SKILLS</span>
+    </button>
+
+    <button class="dock-btn" id="btn-dock-quests" title="Missões [Q]">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>
+      <span>QUESTS</span>
+    </button>
+
+    <button class="dock-btn" id="btn-dock-auto" title="Alternar Caça Automática [A]">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+      <span>AUTO</span>
+    </button>
+  </aside>
+
+  <!-- Frame do Alvo / Monstro (Superior Centro) -->
+  <section id="target-card" class="target-floating-card is-hidden">
+    <div class="target-card-header">
+      <div class="target-name-box">
+        <strong id="enemy-name">Javali Selvagem</strong>
+        <span id="enemy-level-tag">Nv. 3</span>
+      </div>
+      <button id="btn-close-target" class="window-close-btn" aria-label="Fechar alvo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="target-card-body">
+      <div class="target-bar-wrap">
+        <div id="enemy-hp-fill" class="target-fill" style="width: 100%;"></div>
+        <span id="enemy-hp-text">60 / 60</span>
+      </div>
+      <button id="hit" class="btn-target-attack">
+        ATACAR (Espaço)
+      </button>
+    </div>
+  </section>
+
+  <!-- Janela de Status / Personagem [C] -->
+  <section id="character-window" class="modal-window is-hidden">
+    <header class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <h3>ATRIBUTOS DO PERSONAGEM</h3>
+      </div>
+      <button class="window-close-btn" data-close="character-window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="char-profile-header">
+        <div class="char-info-block">
+          <h4 id="char-class-name">Boss Baby</h4>
+          <span>Nível <b id="char-level" class="text-gold">1</b></span>
+          <span>EXP: <b id="char-xp-label">0 / 100</b></span>
+        </div>
+      </div>
+
+      <div class="points-available-row">
+        <span>Pontos Disponíveis:</span>
+        <strong id="stat-points-val" class="text-gold">0</strong>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">FORÇA (STR)</div>
+          <b id="stat-str">15</b>
+          <button class="btn-add-point" data-stat="str" title="Adicionar 1 Ponto">+</button>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">INTELIGÊNCIA (INT)</div>
+          <b id="stat-int">10</b>
+          <button class="btn-add-point" data-stat="int" title="Adicionar 1 Ponto">+</button>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">DESTREZA (DEX)</div>
+          <b id="stat-dex">12</b>
+          <button class="btn-add-point" data-stat="dex" title="Adicionar 1 Ponto">+</button>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">CONSTITUIÇÃO (CON)</div>
+          <b id="stat-con">14</b>
+          <button class="btn-add-point" data-stat="con" title="Adicionar 1 Ponto">+</button>
+        </div>
+      </div>
+
+      <div class="combat-totals-box">
+        <div class="combat-stat-row">
+          <span>Poder de Ataque:</span>
+          <b id="char-attack-val" class="text-gold">12</b>
+        </div>
+        <div class="combat-stat-row">
+          <span>Defesa Física:</span>
+          <b id="char-defense-val" class="text-gold">8</b>
+        </div>
+        <div class="combat-stat-row">
+          <span>Inimigos Abatidos:</span>
+          <b id="char-kills-val">0</b>
+        </div>
+      </div>
+
+      <button id="upgrade" class="btn-primary-action">
+        Melhorar Arma (+1) [30g]
+      </button>
+    </div>
+  </section>
+
+  <!-- Janela de Inventário & Equipamentos [V] -->
+  <section id="inventory-window" class="modal-window is-hidden">
+    <header class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        <h3>INVENTÁRIO & EQUIPAMENTOS</h3>
+      </div>
+      <button class="window-close-btn" data-close="inventory-window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <!-- Slots de Equipamento -->
+      <div class="equipment-layout">
+        <div class="equip-slot" data-slot="helmet" title="Elmo"></div>
+        <div class="equip-slot" data-slot="amulet" title="Amuleto"></div>
+        <div class="equip-slot" data-slot="weapon" title="Arma"></div>
+        <div class="equip-slot" data-slot="armor" title="Peitoral"></div>
+        <div class="equip-slot" data-slot="shield" title="Escudo"></div>
+        <div class="equip-slot" data-slot="pants" title="Calça"></div>
+        <div class="equip-slot" data-slot="boots" title="Botas"></div>
+        <div class="equip-slot" data-slot="ring1" title="Anel 1"></div>
+        <div class="equip-slot" data-slot="ring2" title="Anel 2"></div>
+      </div>
+
+      <!-- Grid de 20 slots de inventário -->
+      <div class="inventory-grid" id="inv-grid"></div>
+
+      <div class="inventory-footer">
+        <div class="gold-balance">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e5b022" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 7v10"/></svg>
+          <strong id="inventory-gold-val">0 Ouro</strong>
+        </div>
+        <small class="inv-tip">Clique para equipar ou consumir</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Habilidades [K] -->
+  <section id="skills-window" class="modal-window is-hidden">
+    <header class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <h3>HABILIDADES & MAGIAS</h3>
+      </div>
+      <button class="window-close-btn" data-close="skills-window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="skill-list">
+        <div class="skill-row-card">
+          <div class="skill-icon-box skill-bash-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 17.5 3 3a2.121 2.121 0 0 0 3-3l-3-3"/><path d="m6 17.5-3 3a2.121 2.121 0 0 0 3 3l3-3"/><path d="m15.5 9L9 15.5"/></svg>
+          </div>
+          <div class="skill-meta">
+            <strong>Golpe Poderoso</strong>
+            <small>Causa 220% de dano crítico. Custo: 15 MP</small>
+          </div>
+          <button class="btn-use-skill" data-skill="bash">Usar [3]</button>
+        </div>
+
+        <div class="skill-row-card">
+          <div class="skill-icon-box skill-heal-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M2 12h20"/></svg>
+          </div>
+          <div class="skill-meta">
+            <strong>Cura Sagrada</strong>
+            <small>Restaura instantaneamente 80 HP. Custo: 25 MP</small>
+          </div>
+          <button class="btn-use-skill" data-skill="heal">Usar [4]</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Quests [Q] -->
+  <section id="quests-window" class="modal-window is-hidden">
+    <header class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>
+        <h3>MISSÕES DE KERSEF</h3>
+      </div>
+      <button class="window-close-btn" data-close="quests-window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+
+    <div class="modal-body">
+      <div class="quest-item-card">
+        <h4 id="quest-title">Caçada em Armia</h4>
+        <p id="quest-desc">Elimine 10 Javalis selvagens nos arredores de Armia.</p>
+
+        <div class="quest-progress-track">
+          <div id="quest-progress-bar" class="quest-progress-fill" style="width: 0%;"></div>
+          <span id="quest-progress-text">0 / 10 Javalis</span>
+        </div>
+
+        <div class="quest-reward-pill">
+          <span>Recompensa:</span>
+          <strong>+250 EXP · +100 Ouro</strong>
+        </div>
+
+        <button id="claim-quest-btn" class="btn-primary-action" disabled>
+          Resgatar Recompensa
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Log de Combate e Sistema (Inferior Esquerdo) -->
+  <section id="chat-box" class="chat-collapsed">
+    <div class="chat-header">
+      <div class="chat-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>LOG DE COMBATE</span>
+      </div>
+      <button id="toggle-chat" class="chat-toggle-btn" aria-label="Recolher chat">—</button>
+    </div>
+    <div class="chat-scroll" id="log" role="log" aria-live="polite"></div>
+  </section>
+
+  <!-- HUD Inferior Principal: Orbes Fluídos & Hotbar 1 a 6 -->
+  <footer id="bottom-hud">
+    <!-- Orbe HP Fluído (Esquerda) -->
+    <div class="vital-capsule hp-capsule" title="Pontos de Vida">
+      <div class="vital-glass">
+        <div id="hp-liquid" class="vital-liquid red-liquid" style="height: 100%;"></div>
+      </div>
+      <div class="vital-label">
+        <span class="tag-red">HP</span>
+        <b id="hp-text">60 / 60</b>
+      </div>
+    </div>
+
+    <!-- Centro: Hotbar de 6 Ações -->
+    <div class="hud-center-unit">
+      <div class="hotbar-slots-bar">
+        <div class="quick-slot" id="slot-1" data-slot-num="1" title="Poção de Vida [Tecla 1]">
+          <div class="slot-visual hp-potion-visual"></div>
+          <b class="slot-badge" id="slot-hp-count">15</b>
+          <span class="slot-key-hint">1</span>
+        </div>
+
+        <div class="quick-slot" id="slot-2" data-slot-num="2" title="Poção de Mana [Tecla 2]">
+          <div class="slot-visual mp-potion-visual"></div>
+          <b class="slot-badge" id="slot-mp-count">10</b>
+          <span class="slot-key-hint">2</span>
+        </div>
+
+        <div class="quick-slot" id="slot-3" data-slot-num="3" title="Golpe Poderoso [Tecla 3]">
+          <div class="slot-visual skill-bash-visual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 17.5 3 3a2.121 2.121 0 0 0 3-3l-3-3"/><path d="m6 17.5-3 3a2.121 2.121 0 0 0 3 3l3-3"/><path d="m15.5 9L9 15.5"/></svg>
+          </div>
+          <span class="slot-key-hint">3</span>
+        </div>
+
+        <div class="quick-slot" id="slot-4" data-slot-num="4" title="Cura Sagrada [Tecla 4]">
+          <div class="slot-visual skill-heal-visual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M2 12h20"/></svg>
+          </div>
+          <span class="slot-key-hint">4</span>
+        </div>
+
+        <div class="quick-slot" id="slot-5" data-slot-num="5" title="Caça Automática [Tecla 5]">
+          <div class="slot-visual skill-auto-visual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+          </div>
+          <span class="slot-key-hint">5</span>
+        </div>
+
+        <div class="quick-slot" id="slot-6" data-slot-num="6" title="Retorno Cidade [Tecla 6]">
+          <div class="slot-visual town-portal-visual">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <span class="slot-key-hint">6</span>
+        </div>
+      </div>
+
+      <!-- Barra de EXP na Base -->
+      <div class="exp-bar-strip">
+        <div id="exp-fill" class="exp-fill-color" style="width: 0%;"></div>
+        <span id="exp-text">EXP 0 / 100 (0.00%)</span>
+      </div>
+    </div>
+
+    <!-- Orbe MP Fluído (Direita) -->
+    <div class="vital-capsule mp-capsule" title="Pontos de Mana">
+      <div class="vital-glass">
+        <div id="mp-liquid" class="vital-liquid blue-liquid" style="height: 100%;"></div>
+      </div>
+      <div class="vital-label">
+        <span class="tag-blue">MP</span>
+        <b id="mp-text">60 / 60</b>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Tooltip Flutuante de Itens -->
+  <div id="item-tooltip" class="tooltip-box is-hidden">
+    <strong id="tt-title">Nome do Item</strong>
+    <span id="tt-type" class="tt-type-pill">Tipo</span>
+    <div id="tt-stats" class="tt-stat-list"></div>
+    <small id="tt-desc" class="tt-desc-text"></small>
+  </div>
+</main>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

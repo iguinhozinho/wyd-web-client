@@ -1,0 +1,10 @@
+{
+  "testuser": {
+    "username": "testuser",
+    "level": 3,
+    "xp": 200,
+    "gold": 200,
+    "kills": 20,
+    "hero": "transknight"
+  }
+}

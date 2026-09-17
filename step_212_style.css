@@ -1,0 +1,1127 @@
+/* ==========================================================================
+   WYD (With Your Destiny) 7.59 Web Port — Classic MMORPG Theme & UI
+   ========================================================================== */
+
+:root {
+  --gold-main: #d4af37;
+  --gold-light: #f5df7a;
+  --gold-dark: #8c6d1f;
+  --stone-dark: #0f141a;
+  --stone-mid: #1d2530;
+  --stone-light: #2e3b4d;
+  --stone-border: #4a5c73;
+  --text-main: #e8ecf2;
+  --text-muted: #8b9bb4;
+  --hp-red: #e62323;
+  --mp-blue: #1c75e8;
+  --font-serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --radius-sm: 4px;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body, #game {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #020406;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 3D Viewport */
+#viewport {
+  position: absolute;
+  inset: 0;
+  background: #070c12;
+}
+#viewport:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 50%, rgba(0, 0, 0, 0.65) 100%);
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* Tela de Carregamento */
+#loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  background: #04070a;
+  color: var(--gold-main);
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+/* Utilitários */
+.is-hidden {
+  display: none !important;
+}
+.text-gold {
+  color: var(--gold-main);
+}
+
+/* Botões Estilo WYD */
+.btn-wyd-primary {
+  background: linear-gradient(180deg, #442a12, #211306);
+  border: 1px solid var(--gold-main);
+  box-shadow: inset 0 0 6px rgba(212, 175, 55, 0.3), 0 4px 10px rgba(0, 0, 0, 0.6);
+  color: var(--gold-light);
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 12px 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.btn-wyd-primary:hover {
+  background: linear-gradient(180deg, #5e3b1a, #331e0b);
+  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.6), 0 0 15px rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
+}
+.btn-wyd-action {
+  background: linear-gradient(180deg, #2b3542, #141b24);
+  border: 1px solid var(--stone-border);
+  color: var(--text-main);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+.btn-wyd-action:hover:not(:disabled) {
+  border-color: var(--gold-main);
+  color: var(--gold-light);
+  background: linear-gradient(180deg, #374558, #1b2533);
+}
+.btn-wyd-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-wyd-attack {
+  background: linear-gradient(180deg, #661818, #360707);
+  border-color: #a82e2e;
+  color: #ffc4c4;
+}
+.btn-wyd-attack:hover {
+  background: linear-gradient(180deg, #822222, #470909);
+  border-color: #e64040;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Minimapa Clássico de Pedra (Canto Superior Direito)
+   ========================================================================== */
+#top-minimap {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(10, 14, 20, 0.85);
+  border: 2px solid var(--stone-border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  width: 170px;
+}
+.minimap-stone-circle {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  border: 3px solid var(--gold-dark);
+  box-shadow: inset 0 0 10px #000, 0 0 8px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  position: relative;
+  background: #111;
+}
+#minimap-canvas-box {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+#minimap-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+#player-minimap-blip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #ffea00;
+  border: 1.5px solid #000;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 6px #ffea00;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+}
+.minimap-info {
+  margin-top: 6px;
+  text-align: center;
+  width: 100%;
+}
+.minimap-info strong {
+  display: block;
+  font-family: var(--font-serif);
+  color: var(--gold-main);
+  font-size: 0.85rem;
+}
+.minimap-info span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.minimap-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  width: 100%;
+}
+.mini-select {
+  flex: 1;
+}
+.mini-select select {
+  width: 100%;
+  background: #0d1218;
+  border: 1px solid var(--stone-border);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.wyd-stone-btn {
+  background: #18202a;
+  border: 1px solid var(--stone-border);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.wyd-stone-btn:hover {
+  border-color: var(--gold-main);
+  background: #243040;
+}
+
+/* ==========================================================================
+   Barra de Alvo / Target (Superior Centro)
+   ========================================================================== */
+#target-box {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 240px;
+  background: rgba(12, 17, 24, 0.9);
+  border: 1px solid var(--stone-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+.target-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.target-title-bar strong {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  color: var(--gold-main);
+}
+#enemy-level-tag {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.wyd-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.wyd-close-btn:hover {
+  color: #fff;
+}
+.target-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.target-hp-bar {
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #4a1515;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.target-hp-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #ff4d4d, #991111);
+  transition: width 0.2s ease;
+}
+#enemy-hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #000;
+  color: #fff;
+}
+.target-stats-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Menu Lateral Direito Clássico
+   ========================================================================== */
+#right-side-menu {
+  position: absolute;
+  right: 14px;
+  top: 240px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.menu-stone-btn {
+  position: relative;
+  width: 48px;
+  height: 52px;
+  background: linear-gradient(180deg, #1f2733, #0f141a);
+  border: 1px solid var(--stone-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.menu-stone-btn:hover {
+  border-color: var(--gold-main);
+  background: linear-gradient(180deg, #2b3647, #151d26);
+  transform: translateX(-3px);
+}
+.menu-stone-btn span {
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-weight: 600;
+}
+.menu-glyph {
+  width: 24px;
+  height: 24px;
+  background-image: url('/assets/MainBox2.png');
+  background-repeat: no-repeat;
+}
+.glyph-char { background-position: -468px -8px; }
+.glyph-inv { background-position: -468px -36px; }
+.glyph-skill { background-position: -468px -64px; }
+.glyph-quest { background-position: -468px -92px; }
+.glyph-opt { background-position: -468px -176px; }
+
+.inv-count-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--gold-main);
+  color: #000;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+/* ==========================================================================
+   HUD Inferior Clássico (Orbes HP/MP + Hotbar)
+   ========================================================================== */
+#wyd-bottom-hud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 20px 8px 20px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(5, 8, 12, 0.95) 60%, transparent);
+}
+#wyd-bottom-hud > * {
+  pointer-events: auto;
+}
+
+/* Orbes de HP e MP Estilo Gárgula */
+.gargoyle-orb-wrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orb-sphere {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #2a3442;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.8);
+  background: #0d1116;
+}
+.red-orb { border-color: #551515; }
+.blue-orb { border-color: #123456; }
+
+.orb-liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transition: height 0.3s ease;
+}
+.red-liquid {
+  background: linear-gradient(180deg, #ff4a4a 0%, #cc1111 40%, #770000 100%);
+  box-shadow: 0 -2px 10px rgba(255, 50, 50, 0.8);
+}
+.blue-liquid {
+  background: linear-gradient(180deg, #4aa3ff 0%, #1166dd 40%, #002277 100%);
+  box-shadow: 0 -2px 10px rgba(50, 150, 255, 0.8);
+}
+.orb-reflection {
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 30%;
+  height: 25%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, transparent 80%);
+  pointer-events: none;
+}
+.orb-label-box {
+  position: absolute;
+  bottom: -4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid var(--stone-border);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+}
+.orb-type-tag {
+  font-weight: 800;
+  font-size: 0.65rem;
+}
+.hp-wrapper .orb-type-tag { color: #ff6b6b; }
+.mp-wrapper .orb-type-tag { color: #6bb0ff; }
+
+/* Controles Centrais do HUD */
+.hud-center-controls {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0 16px;
+}
+.hotbar-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.wyd-auto-btn {
+  height: 44px;
+  padding: 0 12px;
+  background: linear-gradient(180deg, #222c38, #10161f);
+  border: 1px solid var(--stone-border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.wyd-auto-btn.active {
+  border-color: var(--gold-main);
+  color: var(--gold-light);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+.auto-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #555;
+}
+.wyd-auto-btn.active .auto-light {
+  background: #00ff66;
+  box-shadow: 0 0 6px #00ff66;
+}
+
+.hotbar-slots {
+  display: flex;
+  gap: 6px;
+  background: rgba(8, 12, 16, 0.85);
+  padding: 4px;
+  border: 1px solid var(--stone-border);
+  border-radius: 6px;
+}
+.action-slot {
+  width: 42px;
+  height: 42px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.action-slot:hover {
+  border-color: var(--gold-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+.slot-key {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gold-light);
+  text-shadow: 1px 1px 1px #000;
+}
+.slot-count {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 1px #000;
+}
+
+/* Ícones de Itens da Spritesheet Oficial */
+.item-icon {
+  display: inline-block;
+  width: 35px;
+  height: 35px;
+  background-image: url('/assets/itemicon01.png');
+  background-size: 350px 350px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.icon-hp-pot { background-position: -105px -70px; }
+.icon-mp-pot { background-position: -140px -70px; }
+.icon-skill-bash { background-position: -35px 0px; }
+.icon-skill-heal { background-position: -140px -70px; filter: hue-rotate(180deg); }
+.icon-skill-auto { background-position: -70px 0px; }
+.icon-town-portal { background-position: -140px -140px; }
+
+.hud-gold-counter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--stone-border);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  color: var(--gold-light);
+}
+.gold-coin-sprite {
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #ffe259, #ffa751);
+  border-radius: 50%;
+  border: 1px solid #7d4900;
+  box-shadow: 0 0 4px #ffe259;
+}
+
+/* Barra de Experiência Oficial */
+.wyd-exp-bar-container {
+  width: 100%;
+  height: 14px;
+  background: #0a0e14;
+  border: 1px solid var(--stone-border);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.wyd-exp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #107c41, #1ec865);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: width 0.3s ease;
+}
+#exp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 1px #000;
+  color: #e2f0d9;
+}
+
+/* ==========================================================================
+   Janelas do Jogo (Inventário, Status, Skills, Quests)
+   ========================================================================== */
+.wyd-panel-window {
+  position: absolute;
+  z-index: 60;
+  background: rgba(14, 18, 24, 0.95);
+  border: 2px solid var(--stone-border);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+.wyd-window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, #2a3442, #151b24);
+  border-bottom: 1px solid var(--stone-border);
+  border-radius: 4px 4px 0 0;
+}
+.wyd-window-header h3 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--gold-main);
+  letter-spacing: 1px;
+}
+
+/* Janela de Inventário Original */
+#inventory-window {
+  right: 74px;
+  bottom: 100px;
+  width: 280px;
+}
+.inventory-container {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.equipment-paperdoll {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  gap: 8px;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+.equip-slot {
+  width: 44px;
+  height: 44px;
+  background: rgba(20, 26, 34, 0.8);
+  border: 1px solid var(--stone-border);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.equip-slot:hover {
+  border-color: var(--gold-main);
+}
+.equip-slot:after {
+  content: attr(title);
+  position: absolute;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  text-align: center;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 44px);
+  gap: 5px;
+  justify-content: center;
+}
+.inv-slot {
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.inv-slot:hover {
+  border-color: var(--gold-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+.inv-slot .item-count {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #000;
+  color: #fff;
+}
+
+.inventory-gold-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--gold-light);
+}
+.gold-pouch-icon {
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #ffd700, #b8860b);
+  border-radius: 50%;
+}
+
+/* Janela de Personagem */
+#character-window {
+  left: 20px;
+  top: 80px;
+  width: 310px;
+}
+.character-window-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.char-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.char-avatar-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid var(--gold-dark);
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-portrait {
+  width: 32px;
+  height: 32px;
+  background-image: url('/assets/MainBox2.png');
+  background-position: -464px -4px;
+}
+.char-main-details strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: #fff;
+}
+.char-main-details span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.stats-points-banner {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.attributes-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+.stat-item span {
+  color: var(--text-muted);
+  width: 140px;
+}
+.stat-item b {
+  color: #fff;
+  font-size: 0.9rem;
+}
+.btn-add-stat {
+  width: 24px;
+  height: 24px;
+  background: var(--gold-dark);
+  border: 1px solid var(--gold-main);
+  color: #fff;
+  font-weight: bold;
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.btn-add-stat:hover {
+  background: var(--gold-main);
+  color: #000;
+}
+.derived-stats-box {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+.derived-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Janela de Skills */
+#skills-window {
+  left: 50%;
+  top: 100px;
+  transform: translateX(-50%);
+  width: 360px;
+}
+.skills-window-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tier-title {
+  font-size: 0.8rem;
+  color: var(--gold-main);
+  border-bottom: 1px solid var(--stone-border);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+.skill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skill-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--stone-border);
+  padding: 8px;
+  border-radius: 4px;
+}
+.skill-icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-image: url('/assets/itemicon01.png');
+  background-size: 350px 350px;
+  flex-shrink: 0;
+}
+.skill-bash { background-position: -35px 0px; }
+.skill-heal { background-position: -140px -70px; filter: hue-rotate(180deg); }
+.skill-info {
+  flex: 1;
+}
+.skill-info strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #fff;
+}
+.skill-info small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.btn-use-skill {
+  background: #1e2834;
+  border: 1px solid var(--stone-border);
+  color: var(--gold-light);
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-use-skill:hover {
+  border-color: var(--gold-main);
+  background: #2b394a;
+}
+
+/* Janela de Quests */
+#quests-window {
+  left: 50%;
+  top: 120px;
+  transform: translateX(-50%);
+  width: 340px;
+}
+.quest-window-body {
+  padding: 16px;
+}
+.active-quest-card h4 {
+  margin: 0 0 6px 0;
+  color: var(--gold-main);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+}
+.active-quest-card p {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.quest-progress-bar-box {
+  width: 100%;
+  height: 18px;
+  background: #000;
+  border: 1px solid var(--stone-border);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.quest-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #b8860b, #ffd700);
+  transition: width 0.3s;
+}
+#quest-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 1px #000;
+}
+.quest-rewards-summary {
+  margin-bottom: 14px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.quest-rewards-summary b {
+  color: var(--gold-light);
+}
+
+/* Chat & Log de Combate */
+#chat-box {
+  position: absolute;
+  left: 14px;
+  bottom: 100px;
+  width: 320px;
+  background: rgba(10, 14, 20, 0.85);
+  border: 1px solid var(--stone-border);
+  border-radius: 6px;
+  z-index: 30;
+  overflow: hidden;
+}
+#chat-box.collapsed {
+  height: 36px;
+}
+#chat-box.collapsed .chat-content-wrap {
+  display: none;
+}
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--gold-main);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.wyd-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.chat-content-wrap {
+  height: 140px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #cbd5e1;
+}
+#log p {
+  margin: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Floating Combat Text */
+#floating-combat {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 70;
+  overflow: hidden;
+}
+.floating-num {
+  position: absolute;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  animation: floatUp 1.2s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+}
+.f-damage {
+  color: #ff3333;
+  font-size: 1.4rem;
+}
+.f-heal {
+  color: #33ff77;
+  font-size: 1.3rem;
+}
+.f-gold {
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+.f-xp {
+  color: #55aaff;
+  font-size: 1.1rem;
+}
+
+@keyframes floatUp {
+  0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
+  20% { transform: translate(-50%, -15px) scale(1.2); opacity: 1; }
+  80% { transform: translate(-50%, -45px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -65px) scale(0.9); opacity: 0; }
+}
+
+/* Tooltip de Itens */
+.wyd-tooltip {
+  position: absolute;
+  z-index: 100;
+  background: rgba(10, 14, 20, 0.95);
+  border: 1px solid var(--gold-main);
+  border-radius: 4px;
+  padding: 10px 12px;
+  width: 220px;
+  pointer-events: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+  font-size: 0.8rem;
+}
+.wyd-tooltip strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+.tt-type {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+}
+.tt-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #64d2ff;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tt-desc {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1.3;
+}

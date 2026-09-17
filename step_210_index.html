@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WYD Idle 3D — With Your Destiny</title>
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/lobby.css">
+</head>
+<body>
+<main id="game">
+  <div id="viewport">
+    <div id="loading">Carregando Kersef...</div>
+  </div>
+
+  <div id="floating-combat" pointer-events="none"></div>
+
+  <!-- Seleção / Lobby Clássico -->
+  <section id="lobby">
+    <div class="lobby-logo">
+      <span>WITH YOUR DESTINY</span>
+      <h1>WYD</h1>
+      <b>WEB 7.59</b>
+    </div>
+    <p>Selecione sua classe e entre no mundo de Kersef.</p>
+    
+    <div class="character-slots">
+      <div class="slot selected" data-class="transknight">
+        <div class="slot-icon tk-icon"></div>
+        <div class="slot-info">
+          <strong>TransKnight</strong>
+          <span>Guerreiro corpo a corpo nobre de Armia</span>
+        </div>
+        <em>ATIVO</em>
+      </div>
+
+      <div class="slot" data-class="foema">
+        <div class="slot-icon fm-icon"></div>
+        <div class="slot-info">
+          <strong>Foema</strong>
+          <span>Maga elemental mística de Kersef</span>
+        </div>
+        <em>DISPONÍVEL</em>
+      </div>
+    </div>
+
+    <button id="enter-world" class="btn-wyd-primary">
+      CONECTAR AO SERVIDOR
+    </button>
+  </section>
+
+  <!-- Minimapa Clássico de Pedra (Canto Superior Direito) -->
+  <aside id="top-minimap" class="wyd-minimap-frame">
+    <div class="minimap-stone-circle">
+      <div id="minimap-canvas-box">
+        <img id="minimap-img" src="/assets/minimap.png" alt="Minimapa">
+        <div id="player-minimap-blip" title="Você"></div>
+      </div>
+    </div>
+    <div class="minimap-info">
+      <strong id="current-zone-name">Armia (Cidade)</strong>
+      <span id="player-coords">X: 2101, Y: 2094</span>
+    </div>
+    <div class="minimap-actions">
+      <div class="select-wrapper mini-select">
+        <select id="map" aria-label="Regiao"></select>
+      </div>
+      <button id="center" class="wyd-stone-btn" title="Centralizar Câmera">🎯</button>
+      <button id="btn-sound" class="wyd-stone-btn" title="Alternar Som">🔊</button>
+    </div>
+  </aside>
+
+  <!-- Barra de Alvo / Monstro Clássica -->
+  <section id="target-box" class="wyd-target-window is-hidden">
+    <div class="target-title-bar">
+      <strong id="enemy-name">Javali Selvagem</strong>
+      <span id="enemy-level-tag">Nv. 3</span>
+      <button id="close-target" class="wyd-close-btn" aria-label="Fechar">×</button>
+    </div>
+    <div class="target-body">
+      <div class="target-hp-bar">
+        <div id="enemy-hp-fill" class="target-hp-fill" style="width: 100%;"></div>
+        <span id="enemy-hp-text">60 / 60</span>
+      </div>
+      <div class="target-stats-row">
+        <span>ATQ: <b id="enemy-att">18</b></span>
+        <span>DEF: <b id="enemy-def">6</b></span>
+      </div>
+      <button id="hit" class="btn-wyd-action btn-wyd-attack">ATACAR (Espaço)</button>
+    </div>
+  </section>
+
+  <!-- Janela de Inventário Original (nventory2.png) -->
+  <section id="inventory-window" class="wyd-panel-window is-hidden">
+    <header class="wyd-window-header">
+      <h3>INVENTÁRIO</h3>
+      <button class="wyd-close-btn" data-close="inventory-window">×</button>
+    </header>
+    <div class="inventory-container">
+      <div class="equipment-paperdoll">
+        <div class="equip-slot" data-slot="helmet" title="Elmo"></div>
+        <div class="equip-slot" data-slot="weapon" title="Arma Principal"></div>
+        <div class="equip-slot" data-slot="armor" title="Armadura Peitoral"></div>
+        <div class="equip-slot" data-slot="shield" title="Escudo"></div>
+        <div class="equip-slot" data-slot="pants" title="Calça"></div>
+        <div class="equip-slot" data-slot="boots" title="Botas"></div>
+        <div class="equip-slot" data-slot="ring1" title="Anel 1"></div>
+        <div class="equip-slot" data-slot="ring2" title="Anel 2"></div>
+        <div class="equip-slot" data-slot="amulet" title="Amuleto"></div>
+      </div>
+      <div class="inventory-grid" id="inv-grid">
+        <!-- 15 a 20 slots de inventário -->
+      </div>
+      <div class="inventory-gold-bar">
+        <div class="gold-pouch-icon"></div>
+        <span id="inventory-gold-val">0 Ouro</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Personagem & Atributos -->
+  <section id="character-window" class="wyd-panel-window is-hidden">
+    <header class="wyd-window-header">
+      <h3 id="char-window-title">STATUS DO PERSONAGEM</h3>
+      <button class="wyd-close-btn" data-close="character-window">×</button>
+    </header>
+    <div class="character-window-body">
+      <div class="char-header-row">
+        <div class="char-avatar-box">
+          <div id="char-portrait-icon" class="avatar-portrait"></div>
+        </div>
+        <div class="char-main-details">
+          <strong id="char-class-name">TransKnight</strong>
+          <span>Nível: <b id="char-level" class="text-gold">1</b></span>
+          <span>EXP: <b id="char-xp-label">0 / 100</b></span>
+        </div>
+      </div>
+
+      <div class="stats-points-banner">
+        <span>Pontos Disponíveis:</span>
+        <strong id="stat-points-val" class="text-gold">0</strong>
+      </div>
+
+      <div class="attributes-table">
+        <div class="stat-item">
+          <span>FORÇA (STR)</span>
+          <b id="stat-str">15</b>
+          <button class="btn-add-stat" data-stat="str">+</button>
+        </div>
+        <div class="stat-item">
+          <span>INTELIGÊNCIA (INT)</span>
+          <b id="stat-int">10</b>
+          <button class="btn-add-stat" data-stat="int">+</button>
+        </div>
+        <div class="stat-item">
+          <span>DESTREZA (DEX)</span>
+          <b id="stat-dex">12</b>
+          <button class="btn-add-stat" data-stat="dex">+</button>
+        </div>
+        <div class="stat-item">
+          <span>CONSTITUIÇÃO (CON)</span>
+          <b id="stat-con">14</b>
+          <button class="btn-add-stat" data-stat="con">+</button>
+        </div>
+      </div>
+
+      <div class="derived-stats-box">
+        <div class="derived-row">
+          <span>Ataque Físico / Mágico:</span>
+          <b id="char-attack-val" class="text-gold">22</b>
+        </div>
+        <div class="derived-row">
+          <span>Defesa Total:</span>
+          <b id="char-defense-val" class="text-gold">14</b>
+        </div>
+        <div class="derived-row">
+          <span>Monstros Derrotados:</span>
+          <b id="char-kills-val">0</b>
+        </div>
+      </div>
+
+      <div class="refine-box">
+        <button id="upgrade" class="btn-wyd-action">Refinar Arma (+1) [30g]</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Habilidades (Skill2.png) -->
+  <section id="skills-window" class="wyd-panel-window is-hidden">
+    <header class="wyd-window-header">
+      <h3>HABILIDADES (SKILLS)</h3>
+      <button class="wyd-close-btn" data-close="skills-window">×</button>
+    </header>
+    <div class="skills-window-body">
+      <div class="skill-tier">
+        <div class="tier-title">Habilidades Básicas</div>
+        <div class="skill-row">
+          <div class="skill-card active-skill" data-skill="bash" title="Golpe Poderoso">
+            <div class="skill-icon skill-bash"></div>
+            <div class="skill-info">
+              <strong>Golpe Poderoso</strong>
+              <small>Causa 220% de dano. Custo: 15 MP</small>
+            </div>
+            <button class="btn-use-skill" data-skill="bash">Usar (Tecla 3)</button>
+          </div>
+          <div class="skill-card active-skill" data-skill="heal" title="Cura Sagrada">
+            <div class="skill-icon skill-heal"></div>
+            <div class="skill-info">
+              <strong>Cura Sagrada</strong>
+              <small>Restaura 80 de HP. Custo: 25 MP</small>
+            </div>
+            <button class="btn-use-skill" data-skill="heal">Usar (Tecla 4)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Quests -->
+  <section id="quests-window" class="wyd-panel-window is-hidden">
+    <header class="wyd-window-header">
+      <h3>MISSÕES (QUESTS)</h3>
+      <button class="wyd-close-btn" data-close="quests-window">×</button>
+    </header>
+    <div class="quest-window-body">
+      <div class="active-quest-card">
+        <h4 id="quest-title">Caçada em Armia</h4>
+        <p id="quest-desc">Elimine 10 Javalis selvagens nos arredores da cidade de Armia.</p>
+        <div class="quest-progress-bar-box">
+          <div class="quest-progress-fill" id="quest-progress-bar" style="width: 0%;"></div>
+          <span id="quest-progress-text">0 / 10 Javalis</span>
+        </div>
+        <div class="quest-rewards-summary">
+          <span>Recompensa: <b>+250 EXP</b> · <b>+100 Ouro</b></span>
+        </div>
+        <button id="claim-quest-btn" class="btn-wyd-action" disabled>Resgatar Recompensa</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Janela de Chat / Log de Combate -->
+  <section id="chat-box" class="wyd-chat-frame collapsed">
+    <div class="chat-header">
+      <span>LOG DE COMBATE & SISTEMA</span>
+      <button id="toggle-chat" class="wyd-toggle-btn" aria-label="Minimizar">_</button>
+    </div>
+    <div class="chat-content-wrap">
+      <div id="log" role="log" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Menu Vertical Clássico à Direita -->
+  <nav id="right-side-menu" class="wyd-vertical-menu">
+    <button class="menu-stone-btn" id="btn-menu-char" title="Personagem [Tecla C]">
+      <div class="menu-glyph glyph-char"></div>
+      <span>STATUS</span>
+    </button>
+    <button class="menu-stone-btn" id="btn-menu-inv" title="Inventário [Tecla V]">
+      <div class="menu-glyph glyph-inv"></div>
+      <b class="inv-count-badge" id="menu-inv-badge">0</b>
+      <span>INVENT.</span>
+    </button>
+    <button class="menu-stone-btn" id="btn-menu-skills" title="Habilidades [Tecla K]">
+      <div class="menu-glyph glyph-skill"></div>
+      <span>SKILLS</span>
+    </button>
+    <button class="menu-stone-btn" id="btn-menu-quests" title="Missões [Tecla Q]">
+      <div class="menu-glyph glyph-quest"></div>
+      <span>QUESTS</span>
+    </button>
+    <button class="menu-stone-btn" id="btn-menu-lobby" title="Trocar Classe / Personagem">
+      <div class="menu-glyph glyph-opt"></div>
+      <span>TROCAR</span>
+    </button>
+  </nav>
+
+  <!-- HUD Inferior Clássico com Molduras Gárgula e Orbes -->
+  <footer id="wyd-bottom-hud" class="wyd-hud-bar">
+    <!-- Orbe Vermelho de HP (Esquerda) -->
+    <div class="gargoyle-orb-wrapper hp-wrapper">
+      <div class="gargoyle-stone-arch arch-left"></div>
+      <div class="orb-sphere red-orb">
+        <div id="hp-liquid" class="orb-liquid red-liquid" style="height: 100%;"></div>
+        <div class="orb-reflection"></div>
+      </div>
+      <div class="orb-label-box">
+        <span class="orb-type-tag">HP</span>
+        <b id="hp-text">60 / 60</b>
+      </div>
+    </div>
+
+    <!-- Centro: Hotbar, Auto, SP e Barra de EXP -->
+    <div class="hud-center-controls">
+      <div class="hotbar-top-row">
+        <button id="auto" aria-pressed="false" class="wyd-auto-btn">
+          <div class="auto-light"></div>
+          <span>AUTO CAÇA</span>
+        </button>
+
+        <div class="hotbar-slots">
+          <div class="action-slot" id="slot-1" data-slot-num="1" title="Usar Poção de Vida [1]">
+            <i class="item-icon icon-hp-pot"></i>
+            <b class="slot-count" id="slot-hp-count">15</b>
+            <span class="slot-key">1</span>
+          </div>
+
+          <div class="action-slot" id="slot-2" data-slot-num="2" title="Usar Poção de Mana [2]">
+            <i class="item-icon icon-mp-pot"></i>
+            <b class="slot-count" id="slot-mp-count">10</b>
+            <span class="slot-key">2</span>
+          </div>
+
+          <div class="action-slot" id="slot-3" data-slot-num="3" title="Golpe Poderoso [3]">
+            <i class="item-icon icon-skill-bash"></i>
+            <span class="slot-key">3</span>
+          </div>
+
+          <div class="action-slot" id="slot-4" data-slot-num="4" title="Cura Sagrada [4]">
+            <i class="item-icon icon-skill-heal"></i>
+            <span class="slot-key">4</span>
+          </div>
+
+          <div class="action-slot" id="slot-5" data-slot-num="5" title="Caça Automática [5]">
+            <i class="item-icon icon-skill-auto"></i>
+            <span class="slot-key">5</span>
+          </div>
+
+          <div class="action-slot" id="slot-6" data-slot-num="6" title="Retorno à Cidade [6]">
+            <i class="item-icon icon-town-portal"></i>
+            <span class="slot-key">6</span>
+          </div>
+        </div>
+
+        <div class="hud-gold-counter">
+          <i class="gold-coin-sprite"></i>
+          <strong id="gold">0</strong>
+        </div>
+      </div>
+
+      <!-- Barra de EXP Clássica na Base -->
+      <div class="wyd-exp-bar-container">
+        <div id="exp-fill" class="wyd-exp-fill" style="width: 0%;"></div>
+        <span id="exp-text">EXP 0 / 100 (0.00%)</span>
+      </div>
+    </div>
+
+    <!-- Orbe Azul de MP (Direita) -->
+    <div class="gargoyle-orb-wrapper mp-wrapper">
+      <div class="gargoyle-stone-arch arch-right"></div>
+      <div class="orb-sphere blue-orb">
+        <div id="mp-liquid" class="orb-liquid blue-liquid" style="height: 100%;"></div>
+        <div class="orb-reflection"></div>
+      </div>
+      <div class="orb-label-box">
+        <span class="orb-type-tag">MP</span>
+        <b id="mp-text">60 / 60</b>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Tooltip Flutuante de Itens -->
+  <div id="item-tooltip" class="wyd-tooltip is-hidden">
+    <strong id="tt-title">Nome do Item</strong>
+    <span id="tt-type" class="tt-type">Tipo</span>
+    <div id="tt-stats" class="tt-stats"></div>
+    <small id="tt-desc" class="tt-desc"></small>
+  </div>
+</main>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
