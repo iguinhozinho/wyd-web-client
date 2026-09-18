@@ -271,6 +271,15 @@ canvas {
   background: rgba(18, 26, 38, 0.95);
   transform: translateX(4px);
 }
+.dock-btn:focus-visible,
+.icon-tool-btn:focus-visible,
+.btn-text-action:focus-visible,
+.window-close-btn:focus-visible,
+.btn-target-attack:focus-visible,
+.char-select-card:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
 .dock-btn.active {
   border-color: var(--gold-primary);
   color: var(--gold-light);
@@ -325,6 +334,14 @@ canvas {
 #minimap canvas { display: block; width: 144px; height: 144px; cursor: crosshair; }
 #minimap > span { display: flex; justify-content: space-between; padding: 5px 2px 1px; color: #aa9975; font-size: 8px; letter-spacing: 1.5px; }
 #minimap kbd { font: inherit; color: var(--gold-light); }
+
+/* Acabamento de interação: estados claros sem poluir a cena. */
+.target-floating-card:not(.is-hidden) { animation: target-in .18s ease-out both; }
+.window-close-btn { transition: color .16s ease, background .16s ease, transform .16s ease; }
+.window-close-btn:hover { transform: rotate(5deg); }
+.modal-window { box-shadow: 0 18px 55px rgba(0,0,0,.58), 0 0 0 1px rgba(229,176,34,.08); }
+@keyframes target-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 
 /* ==========================================================================
    Frame do Alvo / Target (Superior Centro)
