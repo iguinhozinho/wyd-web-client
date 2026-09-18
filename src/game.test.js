@@ -54,6 +54,14 @@ test('conclusão de quest concede ouro e experiência', () => {
   assert.equal(s.xp, 150);
 });
 
+test('missão avança somente com a criatura correta', () => {
+  const s = fresh();
+  reward(s, 'wf01');
+  assert.equal(s.quest.progress, 0);
+  reward(s, 'bo01');
+  assert.equal(s.quest.progress, 1);
+});
+
 test('save inválido não quebra inicialização; save válido restaura', () => {
   for (const raw of ['{', 'null', '{}', JSON.stringify({ ...fresh(), gold: -1 })]) {
     assert.deepEqual(restore(raw), fresh());

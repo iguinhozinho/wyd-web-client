@@ -200,12 +200,30 @@ const REGION_CREATURES = {
   ],
 };
 
-function creaturesForMap(mapId) {
+const REGION_QUESTS = {
+  armia: { region: 'armia', mobId: 'bo01', targetName: 'Javalis Selvagens', title: 'Caçada em Armia', desc: 'Elimine javalis selvagens nos arredores de Armia.', target: 10, rewardXp: 250, rewardGold: 100 },
+  azran: { region: 'azran', mobId: 'sp01', targetName: 'Aranhas de Azran', title: 'Teias nas ruínas', desc: 'Afaste as aranhas que ocupam os arredores de Azran.', target: 8, rewardXp: 320, rewardGold: 140 },
+  erion: { region: 'erion', mobId: 'lb01', targetName: 'Lobisomens', title: 'A ameaça de Erion', desc: 'Derrote os lobisomens que rondam os campos de Erion.', target: 8, rewardXp: 400, rewardGold: 180 },
+  kersef: { region: 'kersef', mobId: 'cr01', targetName: 'Criaturas de Kersef', title: 'Terras desconhecidas', desc: 'Investigue e elimine criaturas nos setores distantes.', target: 8, rewardXp: 450, rewardGold: 220 },
+};
+
+function regionForMap(mapId) {
   const sector = Number(mapId.slice(5, 7));
-  if (sector === 16) return REGION_CREATURES.armia;
-  if (sector === 13 || sector === 14) return REGION_CREATURES.azran;
-  if (sector === 15 || sector === 17 || sector === 18) return REGION_CREATURES.erion;
-  return REGION_CREATURES.kersef;
+  if (sector === 16) return 'armia';
+  if (sector === 13 || sector === 14) return 'azran';
+  if (sector === 15 || sector === 17 || sector === 18) return 'erion';
+  return 'kersef';
+}
+
+function creaturesForMap(mapId) {
+  return REGION_CREATURES[regionForMap(mapId)];
+}
+
+function ensureRegionalQuest(mapId) {
+  if (state.quest && !state.quest.claimed) return;
+  state.quest = { ...REGION_QUESTS[regionForMap(mapId)], progress: 0, claimed: false };
+  save();
+  updateUI();
 }
 
 function setActiveEnemy(actor) {
@@ -804,7 +822,8 @@ function updateUI() {
     $('quest-desc').textContent = state.quest.desc;
     const qPct = Math.min(100, (state.quest.progress / state.quest.target) * 100);
     $('quest-progress-bar').style.width = `${qPct}%`;
-    $('quest-progress-text').textContent = `${state.quest.progress} / ${state.quest.target} Javalis`;
+    $('quest-progress-text').textContent = `${state.quest.progress} / ${state.quest.target} ${state.quest.targetName || 'alvos'}`;
+    $('quest-reward-text').textContent = `+${state.quest.rewardXp} EXP · +${state.quest.rewardGold} Ouro`;
     const claimBtn = $('claim-quest-btn');
     claimBtn.disabled = state.quest.claimed || state.quest.progress < state.quest.target;
     claimBtn.textContent = state.quest.claimed ? 'Missão Concluída!' : 'Resgatar Recompensa';
@@ -975,7 +994,7 @@ function checkEnemyStatus() {
     defeated.root.visible = false;
     defeated.respawnAt = performance.now() + 8000;
     const prevLvl = state.level;
-    reward(state);
+    reward(state, defeated.id);
     sfx.item();
     showFloatingText('+25 EXP', 'xp');
     showFloatingText('+10 Ouro', 'gold');
@@ -1251,6 +1270,7 @@ try {
       hero.position.copy(spawn);
       $('loading').textContent = 'Acordando criaturas da região…';
       await populateEnemies(id, spawn, version);
+      ensureRegionalQuest(id);
       ring.position.set(spawn.x, spawn.y + 0.04, spawn.z);
       centerCamera();
 

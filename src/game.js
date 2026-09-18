@@ -15,6 +15,9 @@ export const fresh = () => ({
   inventory: getInitialInventory(),
   equipment: getInitialEquipment(),
   quest: {
+    region: 'armia',
+    mobId: 'bo01',
+    targetName: 'Javalis Selvagens',
     title: 'Caçada em Armia',
     desc: 'Elimine 10 Javalis selvagens nos arredores de Armia.',
     progress: 0,
@@ -43,12 +46,12 @@ export const defense = (s) => {
 
 export const price = (s) => 30 * (s.weapon + 1);
 
-export function reward(s) {
+export function reward(s, defeatedMobId) {
   s.kills++;
   s.gold += 10;
   s.xp += 25;
 
-  if (s.quest && !s.quest.claimed && s.quest.progress < s.quest.target) {
+  if (s.quest && !s.quest.claimed && s.quest.progress < s.quest.target && (!defeatedMobId || !s.quest.mobId || defeatedMobId === s.quest.mobId)) {
     s.quest.progress++;
   }
 
@@ -111,6 +114,11 @@ export function restore(raw) {
     if (!s.con) s.con = 14;
     if (s.statPoints === undefined) s.statPoints = 0;
     if (!s.quest) s.quest = fresh().quest;
+    if (!s.quest.mobId) {
+      s.quest.region = 'armia';
+      s.quest.mobId = 'bo01';
+      s.quest.targetName = 'Javalis Selvagens';
+    }
 
     return s;
   } catch {
