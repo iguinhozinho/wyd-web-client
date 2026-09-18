@@ -24,4 +24,4 @@ Somente um painel principal fica aberto de cada vez. Abrir outro painel fecha o 
 
 ## Limite atual
 
-Inventário, atributos, duas habilidades, missão de teste, combate e caça automática funcionam. Guilda, comércio, grupo, banco, refinação completa, minimapa funcional e árvore integral de habilidades ainda não foram portados. Botões para essas funções não devem aparecer antes de possuírem comportamento real.
+Inventário, atributos, duas habilidades, missão de teste, combate, caça automática e minimapa navegável funcionam. Guilda, comércio, grupo, banco, refinação completa e árvore integral de habilidades ainda não foram portados. Botões para essas funções não devem aparecer antes de possuírem comportamento real.

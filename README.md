@@ -40,7 +40,7 @@ O preview fica em <http://127.0.0.1:4173/>.
 - Catálogo com 60 tipos de criatura exportados; Armia, Azran, Erion e demais setores recebem grupos diferentes de monstros completos.
 - Criaturas com idle, caminhada, ataque, vida, morte, respawn, seleção por proximidade e colisão básica com o cenário.
 - 121 terrenos e 798 modelos de cenário exportados dos dados locais.
-- Banco importado com 2.523 itens originais e inventário inicial baseado nos identificadores oficiais.
+- Banco importado com 2.523 itens originais e inventário inicial baseado nos identificadores oficiais. O catálogo é carregado em segundo plano para não bloquear o lobby nem o mundo 3D.
 - XP, nível, ouro e melhoria de arma, salvos no localStorage. Classes são apenas seleção visual/nome nesta fase.
 - Layout adaptável e mensagens de erro de carregamento.
 

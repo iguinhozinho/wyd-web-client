@@ -1,6 +1,4 @@
 // WYD Web Port — Item Database & Equipment System (Base Oficial 7.59)
-import officialItems from './items-db.json' with { type: 'json' };
-
 export const ITEM_DEFS = {
   hp_potion: {
     id: 'hp_potion',
@@ -193,7 +191,22 @@ export const ITEM_DEFS = {
   },
 };
 
-// Carregar dinamicamente os 2.523 itens oficiais do ItemList.bin
+let officialItemsPromise;
+export function loadOfficialItems() {
+  if (officialItemsPromise) return officialItemsPromise;
+  officialItemsPromise = fetch('/assets/items-db.json')
+    .then((response) => {
+      if (!response.ok) throw new Error(`Banco de itens: HTTP ${response.status}`);
+      return response.json();
+    })
+    .then((officialItems) => {
+      hydrateOfficialItems(officialItems);
+      return ITEM_DEFS;
+    });
+  return officialItemsPromise;
+}
+
+function hydrateOfficialItems(officialItems) {
 for (const [idStr, it] of Object.entries(officialItems)) {
   const numId = Number(idStr);
   const iconX = it.iconIndex % 20;
@@ -231,6 +244,7 @@ for (const [idStr, it] of Object.entries(officialItems)) {
       ? (it.hp ? `Restaura ${it.hp} pontos de Vida.` : (it.mp ? `Restaura ${it.mp} pontos de Mana.` : `Item especial de Kersef (${it.rawName}).`))
       : `Equipamento de Kersef. ${it.rawName ? `[${it.rawName}]` : ''}`
   };
+}
 }
 
 export function getInitialInventory() {

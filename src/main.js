@@ -15,7 +15,7 @@ import {
   claimQuest,
   restore,
 } from './game.js';
-import { ITEM_DEFS } from './items.js';
+import { ITEM_DEFS, loadOfficialItems } from './items.js';
 import { sfx, preloadSounds } from './sound.js';
 import { loadWydCharacter } from './wyd-character.js';
 import { loadWydWorld } from './wyd-world.js';
@@ -1287,6 +1287,7 @@ try {
 
 // Loop Principal de Animação
 updateUI();
+loadOfficialItems().then(updateUI).catch((error) => console.warn('Itens oficiais indisponíveis:', error));
 let previous = 0;
 let elapsed = 0;
 let lastCoords = '';
