@@ -35,7 +35,6 @@ export async function loadTheodoreCharacter(renderer){
       roughness:1.0,
       metalnessMap:arm,
       metalness:1.0,
-      skinning:object.isSkinnedMesh,
       side:THREE.FrontSide,
       transparent: false,
       alphaTest: 0.5

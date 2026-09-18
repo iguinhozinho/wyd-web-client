@@ -1,4 +1,5 @@
-// WYD Web Port — Item Database & Equipment System
+// WYD Web Port — Item Database & Equipment System (Base Oficial 7.59)
+import officialItems from './items-db.json' with { type: 'json' };
 
 export const ITEM_DEFS = {
   hp_potion: {
@@ -192,15 +193,56 @@ export const ITEM_DEFS = {
   },
 };
 
+// Carregar dinamicamente os 2.523 itens oficiais do ItemList.bin
+for (const [idStr, it] of Object.entries(officialItems)) {
+  const numId = Number(idStr);
+  const iconX = it.iconIndex % 20;
+  const iconY = Math.floor(it.iconIndex / 20);
+
+  let itemType = 'armor';
+  if (it.slot === 'consumable') itemType = 'consumable';
+  else if (it.slot === 'weapon' || it.slot === 'weapon_2h') itemType = 'weapon';
+  else if (it.slot === 'ring' || it.slot === 'necklace' || it.slot === 'orb') itemType = 'accessory';
+
+  const rarity = it.grade === 4 ? 'unique' : (it.grade === 3 ? 'rare' : (it.grade === 2 ? 'magic' : 'normal'));
+
+  ITEM_DEFS[numId] = {
+    id: numId,
+    name: it.name,
+    rawName: it.rawName,
+    type: itemType,
+    slot: it.slot === 'weapon_2h' ? 'weapon' : (it.slot === 'ring' ? 'ring1' : it.slot),
+    atk: it.attack,
+    def: it.defense,
+    hp: it.hp,
+    mp: it.mp,
+    value: it.hp || it.mp || 0,
+    effect: it.hp ? 'heal_hp' : (it.mp ? 'heal_mp' : null),
+    reqLevel: it.reqLvl,
+    reqStr: it.reqStr,
+    reqInt: it.reqInt,
+    reqDex: it.reqDex,
+    reqCon: it.reqCon,
+    iconX,
+    iconY,
+    rarity,
+    price: it.price,
+    desc: it.slot === 'consumable'
+      ? (it.hp ? `Restaura ${it.hp} pontos de Vida.` : (it.mp ? `Restaura ${it.mp} pontos de Mana.` : `Item especial de Kersef (${it.rawName}).`))
+      : `Equipamento de Kersef. ${it.rawName ? `[${it.rawName}]` : ''}`
+  };
+}
+
 export function getInitialInventory() {
   return [
-    { itemId: 'hp_potion', count: 15 },
-    { itemId: 'mp_potion', count: 10 },
-    { itemId: 'sword_starter', count: 1, refine: 0 },
-    { itemId: 'helm_iron', count: 1, refine: 0 },
-    { itemId: 'chest_plate', count: 1, refine: 0 },
-    { itemId: 'shield_kite', count: 1, refine: 0 },
-    { itemId: 'powder_ori', count: 3 },
+    { itemId: 400, count: 20 }, // Poção de Cura (P) oficial
+    { itemId: 403, count: 15 }, // Poção de Mana (P) oficial
+    { itemId: 956, count: 1, refine: 0 }, // Espada Longa oficial (ID 956)
+    { itemId: 1110, count: 1, refine: 0 }, // Elmo de Malha oficial (ID 1110)
+    { itemId: 1170, count: 1, refine: 0 }, // Luvas de Placas oficial (ID 1170)
+    { itemId: 1710, count: 1, refine: 0 }, // Escudo Rúnico oficial (ID 1710)
+    { itemId: 3000, count: 5 }, // Poeira de Órion oficial (ID 3000)
+    { itemId: 420, count: 2 }, // Pedaço de Lactolerium oficial (ID 420)
   ];
 }
 

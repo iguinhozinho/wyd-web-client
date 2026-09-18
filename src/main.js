@@ -165,25 +165,99 @@ function pawn(color, name, isEnemy) {
 }
 
 let hero = pawn(0x819ec6, 'Personagem', false);
-let enemy = pawn(0xa76543, 'Javali Selvagem', true);
+let enemy = null;
 let originalHero = null;
 let characterRoot = null;
 let enemyController = null;
+let enemyActors = [];
+let activeEnemyActor = null;
 const characterCache = new Map();
 
-// Carregar modelo 3D do Javali
-loadWydCharacter('/assets/monster/bo01-boar.json', renderer)
-  .then((ctrl) => {
-    enemyController = ctrl;
-    ctrl.group.scale.setScalar(1.0);
-    ctrl.group.rotation.x = -Math.PI / 2;
-    const label = enemy.children.find((c) => c instanceof CSS2DObject);
-    while (enemy.children.length > 0) enemy.remove(enemy.children[0]);
-    if (label) enemy.add(label);
-    enemy.add(ctrl.group);
-    log('Javali 3D original carregado.');
-  })
-  .catch((e) => console.warn('Javali placeholder mantido:', e));
+const CREATURES = [
+  { id: 'bo01', name: 'Javali Selvagem', hp: 60, scale: 1.0 },
+  { id: 'wf01', name: 'Lobo Cinzento', hp: 72, scale: 0.95 },
+  { id: 'be01', name: 'Urso de Armia', hp: 95, scale: 1.05 },
+  { id: 'or02', name: 'Orc Errante', hp: 110, scale: 1.0 },
+];
+
+function setActiveEnemy(actor) {
+  if (!actor?.alive) return;
+  activeEnemyActor = actor;
+  enemy = actor.root;
+  enemyController = actor.controller;
+  enemyMaxHp = actor.maxHp;
+  enemyCurrentHp = actor.hp;
+  $('enemy-name').textContent = actor.name;
+  $('enemy-level-tag').textContent = `Nv. ${actor.level}`;
+  updateUI();
+}
+
+function nearestLivingEnemy(maxDistance = Infinity) {
+  let nearest = null;
+  let distance = maxDistance;
+  for (const actor of enemyActors) {
+    if (!actor.alive || !actor.root.visible) continue;
+    const current = hero.position.distanceTo(actor.root.position);
+    if (current < distance) {
+      nearest = actor;
+      distance = current;
+    }
+  }
+  return nearest;
+}
+
+async function createEnemyActor(spec, position, index) {
+  const root = pawn(0xa76543, spec.name, true);
+  root.position.copy(position);
+  const actor = {
+    ...spec,
+    root,
+    controller: null,
+    maxHp: spec.hp,
+    hp: spec.hp,
+    level: 2 + index,
+    alive: true,
+    respawnAt: 0,
+    home: position.clone(),
+    wanderAngle: index * 1.7,
+    wanderTarget: new THREE.Vector3(),
+    wanderStep: new THREE.Vector3(),
+  };
+  try {
+    const controller = await loadWydCharacter(`/assets/creatures/${spec.id}/${spec.id}.json`, renderer);
+    controller.group.scale.setScalar(spec.scale);
+    const label = root.children.find((child) => child instanceof CSS2DObject);
+    while (root.children.length) root.remove(root.children[0]);
+    if (label) root.add(label);
+    root.add(controller.group);
+    actor.controller = controller;
+  } catch (error) {
+    console.warn(`Criatura ${spec.id} indisponível:`, error);
+  }
+  return actor;
+}
+
+async function populateEnemies(spawn, version) {
+  enemyActors.forEach((actor) => scene.remove(actor.root));
+  enemyActors = [];
+  activeEnemyActor = null;
+  enemy = null;
+  enemyController = null;
+  const offsets = [[3, 1], [-4, 3], [5, -4], [-5, -4]];
+  const actors = await Promise.all(CREATURES.map((spec, index) => {
+    const [dx, dz] = offsets[index];
+    const position = new THREE.Vector3(spawn.x + dx, 0, spawn.z + dz);
+    position.y = height(position.x, position.z);
+    return createEnemyActor(spec, position, index);
+  }));
+  if (version !== loadVersion) {
+    actors.forEach((actor) => scene.remove(actor.root));
+    return;
+  }
+  enemyActors = actors;
+  setActiveEnemy(nearestLivingEnemy());
+  log(`${actors.length} criaturas originais apareceram na região.`);
+}
 
 async function selectCharacter(kind) {
   const charDisplayName =
@@ -339,13 +413,20 @@ function showTooltip(item, e) {
   $('tt-type').textContent = `${def.type.toUpperCase()} · ${def.slot ? def.slot.toUpperCase() : 'CONSUMÍVEL'}`;
 
   let statsHtml = '';
-  if (def.atk) statsHtml += `<span>Ataque: +${def.atk + (item.refine || 0) * 4}</span>`;
-  if (def.def) statsHtml += `<span>Defesa: +${def.def + (item.refine || 0) * 3}</span>`;
-  if (def.hp) statsHtml += `<span>HP Máx: +${def.hp}</span>`;
-  if (def.mp) statsHtml += `<span>MP Máx: +${def.mp}</span>`;
-  if (def.value) statsHtml += `<span>Cura: +${def.value}</span>`;
-  if (def.reqLevel) statsHtml += `<span>Nível Necessário: ${def.reqLevel}</span>`;
-  statsHtml += `<span>Preço: ${def.price}g</span>`;
+  if (def.atk) statsHtml += `<span style="color: #ef4444; font-weight: bold;">Ataque: +${def.atk + (item.refine || 0) * 4}</span>`;
+  if (def.def) statsHtml += `<span style="color: #3b82f6; font-weight: bold;">Defesa: +${def.def + (item.refine || 0) * 3}</span>`;
+  if (def.hp) statsHtml += `<span style="color: #10b981;">HP: +${def.hp}</span>`;
+  if (def.mp) statsHtml += `<span style="color: #6366f1;">MP: +${def.mp}</span>`;
+  if (def.value && def.type === 'consumable') statsHtml += `<span style="color: #34d399;">Efeito: +${def.value}</span>`;
+
+  // Requisitos de atributos (estilo clássico WYD)
+  if (def.reqLevel) statsHtml += `<span style="color: ${state.level >= def.reqLevel ? '#4ade80' : '#f87171'};">Nível: ${def.reqLevel}</span>`;
+  if (def.reqStr) statsHtml += `<span style="color: ${(state.str || 15) >= def.reqStr ? '#4ade80' : '#f87171'};">Força: ${def.reqStr}</span>`;
+  if (def.reqInt) statsHtml += `<span style="color: ${(state.int || 10) >= def.reqInt ? '#4ade80' : '#f87171'};">Inteligência: ${def.reqInt}</span>`;
+  if (def.reqDex) statsHtml += `<span style="color: ${(state.dex || 12) >= def.reqDex ? '#4ade80' : '#f87171'};">Destreza: ${def.reqDex}</span>`;
+  if (def.reqCon) statsHtml += `<span style="color: ${(state.con || 14) >= def.reqCon ? '#4ade80' : '#f87171'};">Constituição: ${def.reqCon}</span>`;
+
+  statsHtml += `<span style="color: #fbbf24;">Preço: ${Number(def.price || 0).toLocaleString('pt-BR')} Ouro</span>`;
 
   $('tt-stats').innerHTML = statsHtml;
   $('tt-desc').textContent = def.desc;
@@ -466,7 +547,10 @@ function unequipItem(slotType) {
 
 // Uso de Poções via Hotbar (Atalhos 1 e 2)
 function useQuickPotion(type) {
-  const idx = state.inventory.findIndex((it) => it.itemId === (type === 'hp' ? 'hp_potion' : 'mp_potion'));
+  const idx = state.inventory.findIndex((it) => {
+    const d = ITEM_DEFS[it.itemId];
+    return d && (d.effect === (type === 'hp' ? 'heal_hp' : 'heal_mp') || (type === 'hp' ? it.itemId === 400 : it.itemId === 403));
+  });
   if (idx !== -1) {
     useOrEquipItem(idx);
   } else {
@@ -545,10 +629,16 @@ function updateUI() {
   $('upgrade').disabled = state.gold < price(state);
 
   // Pote de Poções na Hotbar
-  const hpPotItem = state.inventory.find((it) => it.itemId === 'hp_potion');
-  const mpPotItem = state.inventory.find((it) => it.itemId === 'mp_potion');
-  $('slot-hp-count').textContent = hpPotItem ? hpPotItem.count : 0;
-  $('slot-mp-count').textContent = mpPotItem ? mpPotItem.count : 0;
+  const hpTotal = state.inventory.reduce((acc, it) => {
+    const d = ITEM_DEFS[it.itemId];
+    return acc + (d && (d.effect === 'heal_hp' || it.itemId === 400) ? (it.count || 1) : 0);
+  }, 0);
+  const mpTotal = state.inventory.reduce((acc, it) => {
+    const d = ITEM_DEFS[it.itemId];
+    return acc + (d && (d.effect === 'heal_mp' || it.itemId === 403) ? (it.count || 1) : 0);
+  }, 0);
+  $('slot-hp-count').textContent = hpTotal;
+  $('slot-mp-count').textContent = mpTotal;
 
   // Janela de Quests
   if (state.quest) {
@@ -687,21 +777,20 @@ addEventListener('keydown', (e) => {
 function hit() {
   const now = performance.now();
   if (now - lastHit < 400 || !terrainData) return;
-  
-  if (hero && enemy) {
-    if (hero.position.distanceTo(enemy.position) > 4.5) {
-      // Too far to hit
-      // Could show a "Fora de alcance" message but just returning is fine
-      return;
-    }
-  }
+
+  const nearby = nearestLivingEnemy(4.5);
+  if (!nearby) return;
+  if (nearby !== activeEnemyActor) setActiveEnemy(nearby);
 
   $('target-card').classList.remove('is-hidden');
   lastHit = now;
   sfx.swing();
 
   const dmg = damage(state) + Math.floor(Math.random() * 4 - 2);
-  enemyCurrentHp = Math.max(0, enemyCurrentHp - dmg);
+  activeEnemyActor.hp = Math.max(0, activeEnemyActor.hp - dmg);
+  enemyCurrentHp = activeEnemyActor.hp;
+  const actorHpFill = activeEnemyActor.root.userData.labelDiv?.querySelector('.hp-fill');
+  if (actorHpFill) actorHpFill.style.width = `${(activeEnemyActor.hp / activeEnemyActor.maxHp) * 100}%`;
   sfx.hit();
   showFloatingText(`-${dmg}`, 'damage');
 
@@ -717,7 +806,11 @@ function hit() {
 }
 
 function checkEnemyStatus() {
-  if (enemyCurrentHp <= 0) {
+  if (enemyCurrentHp <= 0 && activeEnemyActor?.alive) {
+    const defeated = activeEnemyActor;
+    defeated.alive = false;
+    defeated.root.visible = false;
+    defeated.respawnAt = performance.now() + 8000;
     const prevLvl = state.level;
     reward(state);
     sfx.item();
@@ -730,8 +823,50 @@ function checkEnemyStatus() {
       log(`Parabéns! Nível ${state.level}! (+5 Pontos de Atributo)`);
     }
 
-    enemyCurrentHp = enemyMaxHp;
-    log('Javali derrotado · +25 XP · +10 Ouro.');
+    // Drops oficiais de itens do ItemList.bin
+    const roll = Math.random();
+    let dropItem = null;
+    if (roll < 0.05) {
+      dropItem = { itemId: 420, count: 1 }; // Pedaço de Lactolerium
+    } else if (roll < 0.18) {
+      dropItem = { itemId: 3000, count: 1 }; // Poeira de Órion
+    } else if (roll < 0.35) {
+      // Equipamentos clássicos
+      const equipPool = [951, 952, 953, 956, 1110, 1140, 1170, 1710, 501];
+      const chosen = equipPool[Math.floor(Math.random() * equipPool.length)];
+      dropItem = { itemId: chosen, count: 1, refine: 0 };
+    } else if (roll < 0.65) {
+      // Poções oficiais
+      const potId = Math.random() < 0.5 ? 400 : 403;
+      dropItem = { itemId: potId, count: Math.floor(Math.random() * 3) + 1 };
+    }
+
+    if (dropItem) {
+      const def = ITEM_DEFS[dropItem.itemId];
+      if (def) {
+        if (state.inventory.length < 20) {
+          const existing = state.inventory.find((it) => it.itemId === dropItem.itemId && it.count !== undefined && !dropItem.refine);
+          if (existing) {
+            existing.count += dropItem.count;
+          } else {
+            state.inventory.push(dropItem);
+          }
+          sfx.inventory();
+          showFloatingText(`+${def.name}`, 'gold');
+          log(`Drop: [${def.name}] obtido!`);
+        } else {
+          log(`Drop [${def.name}] caiu no chão (Inventário Cheio).`);
+        }
+      }
+    }
+
+    log(`${defeated.name} derrotado · +25 XP · +10 Ouro.`);
+    const next = nearestLivingEnemy();
+    if (next) setActiveEnemy(next);
+    else {
+      enemyCurrentHp = 0;
+      $('target-card').classList.add('is-hidden');
+    }
     save();
   }
 }
@@ -943,7 +1078,8 @@ try {
       const spawn = id === 'Field1616' ? new THREE.Vector3(26.5, 0, 23) : new THREE.Vector3(32, 0, 32);
       spawn.y = height(spawn.x, spawn.z);
       hero.position.copy(spawn);
-      enemy.position.set(spawn.x + 2, height(spawn.x + 2, spawn.z), spawn.z);
+      $('loading').textContent = 'Acordando criaturas da região…';
+      await populateEnemies(spawn, version);
       ring.position.set(spawn.x, spawn.y + 0.04, spawn.z);
       centerCamera();
 
@@ -994,11 +1130,15 @@ renderer.setAnimationLoop((time) => {
 
   // Auto hunt loop
   if (auto && elapsed >= 1.0) {
-    const dist = hero && enemy ? hero.position.distanceTo(enemy.position) : 0;
+    if (!activeEnemyActor?.alive) {
+      const next = nearestLivingEnemy();
+      if (next) setActiveEnemy(next);
+    }
+    const dist = hero && enemy ? hero.position.distanceTo(enemy.position) : Infinity;
     if (dist > 4.0) {
-      moveTarget = enemy.position.clone();
+      if (enemy) moveTarget = enemy.position.clone();
       elapsed = 0.5; // check more frequently when running to target
-    } else {
+    } else if (enemy) {
       hit();
       elapsed = 0;
     }
@@ -1080,8 +1220,45 @@ renderer.setAnimationLoop((time) => {
     targetPos: enemy?.position,
   });
 
-  enemyController?.setMotion(attackPhase > 0 ? 'idle' : 'idle');
-  enemyController?.update(time);
+  for (const actor of enemyActors) {
+    if (!actor.alive) {
+      if (time >= actor.respawnAt) {
+        actor.alive = true;
+        actor.hp = actor.maxHp;
+        actor.root.position.copy(actor.home);
+        actor.root.visible = true;
+        const hpFill = actor.root.userData.labelDiv?.querySelector('.hp-fill');
+        if (hpFill) hpFill.style.width = '100%';
+        if (!activeEnemyActor?.alive) setActiveEnemy(actor);
+      }
+      continue;
+    }
+    const isBeingHit = actor === activeEnemyActor && attackPhase > 0;
+    actor.wanderAngle += dt * (0.18 + actor.level * 0.008);
+    actor.wanderTarget.set(
+      actor.home.x + Math.cos(actor.wanderAngle) * 1.4,
+      0,
+      actor.home.z + Math.sin(actor.wanderAngle) * 1.4
+    );
+    const dx = actor.wanderTarget.x - actor.root.position.x;
+    const dz = actor.wanderTarget.z - actor.root.position.z;
+    const length = Math.hypot(dx, dz) || 1;
+    const roaming = !isBeingHit && length > 0.05;
+    if (roaming) {
+      actor.wanderStep.copy(actor.root.position);
+      actor.wanderStep.x += (dx / length) * dt * 0.42;
+      actor.wanderStep.z += (dz / length) * dt * 0.42;
+      if (canMove(actor.root.position, actor.wanderStep)) {
+        actor.root.position.copy(actor.wanderStep);
+        actor.root.position.y = height(actor.root.position.x, actor.root.position.z);
+      } else {
+        actor.wanderAngle += Math.PI * 0.65;
+      }
+      actor.root.rotation.y = Math.atan2(dx, dz);
+    }
+    actor.controller?.setMotion(isBeingHit ? 'attack' : roaming ? 'walk' : 'idle');
+    actor.controller?.update(time);
+  }
 
   controls.update();
   renderer.render(scene, camera);
