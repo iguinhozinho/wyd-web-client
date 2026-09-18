@@ -16,6 +16,8 @@ npm run dev
 
 Abra <http://127.0.0.1:5173/>. O atalho `INICIAR-WEB.cmd`, na pasta pai, executa o mesmo fluxo no Windows.
 
+Para manter o progresso também no servidor de teste, abra outro terminal e execute `npm run server`. O cliente continua salvando localmente quando o servidor estiver fechado.
+
 Para testar a lógica sem abrir o navegador:
 
 ```powershell

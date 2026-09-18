@@ -19,6 +19,22 @@ function saveDb() {
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
 }
 
+const SAVE_FIELDS = [
+    'level', 'xp', 'gold', 'kills', 'hero', 'weapon', 'stats', 'statPoints',
+    'inventory', 'equipment', 'quest'
+];
+
+function sanitizeState(input) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+    const clean = {};
+    for (const field of SAVE_FIELDS) {
+        if (Object.hasOwn(input, field)) clean[field] = input[field];
+    }
+    const encoded = JSON.stringify(clean);
+    if (encoded.length > 100_000) return null;
+    return clean;
+}
+
 const wss = new WebSocketServer({ port: 7556 });
 
 console.log('Servidor rodando na porta 7556...');
@@ -63,6 +79,15 @@ wss.on('connection', (ws) => {
                 
                 saveDb();
                 ws.send(JSON.stringify({ type: 'sync', state }));
+            }
+
+            if (data.type === 'save') {
+                if (!currentUser) return;
+                const next = sanitizeState(data.state);
+                if (!next) return;
+                db[currentUser] = { ...db[currentUser], ...next, username: currentUser };
+                saveDb();
+                ws.send(JSON.stringify({ type: 'saved' }));
             }
 
             if (data.type === 'upgrade') {

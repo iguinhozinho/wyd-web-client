@@ -62,14 +62,13 @@ try {
 }
 
 function save() {
+  try {
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    log('Armazenamento local indisponível.');
+  }
   if (ws && ws.readyState === WebSocket.OPEN) {
-    // Sincronização direta
-  } else {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch {
-      log('Armazenamento local indisponível.');
-    }
+    ws.send(JSON.stringify({ type: 'save', state }));
   }
 }
 
