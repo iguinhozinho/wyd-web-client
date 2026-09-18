@@ -1012,13 +1012,9 @@ canvas {
 .hp-potion-visual, .mp-potion-visual {
   width: 28px;
   height: 28px;
-  background-image: url('/assets/itemicon01.png');
-  background-size: 280px 280px;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 }
-.hp-potion-visual { background-position: -84px -56px; }
-.mp-potion-visual { background-position: -112px -56px; }
 .skill-bash-visual { color: #f87171; }
 .skill-heal-visual { color: #34d399; }
 .skill-auto-visual { color: #60a5fa; }
@@ -1139,8 +1135,6 @@ canvas {
   display: inline-block;
   width: 35px;
   height: 35px;
-  background-image: url('/assets/itemicon01.png');
-  background-size: 700px 700px;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 }

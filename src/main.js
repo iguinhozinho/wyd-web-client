@@ -618,6 +618,14 @@ function hideTooltip() {
   tooltip.classList.add('is-hidden');
 }
 
+function itemIconStyle(def) {
+  if (def.usesBaseAtlas) {
+    return `background-image:url('/assets/itemicon-base.png');background-size:400px 3550px;background-position:${-(def.iconX + 1) * 35}px ${-(def.iconY + 1) * 35}px`;
+  }
+  const sheet = String(def.sheetNum || 1).padStart(2, '0');
+  return `background-image:url('/assets/itemicon${sheet}.png');background-size:350px 350px;background-position:${-def.iconX * 35}px ${-def.iconY * 35}px`;
+}
+
 // Renderização do Inventário
 function renderInventory() {
   const grid = $('inv-grid');
@@ -630,7 +638,7 @@ function renderInventory() {
     if (item) {
       const def = ITEM_DEFS[item.itemId];
       if (def) {
-        slot.innerHTML = `<i class="item-icon" style="background-position: ${-def.iconX * 35}px ${-def.iconY * 35}px;"></i>`;
+        slot.innerHTML = `<i class="item-icon" style="${itemIconStyle(def)}"></i>`;
         if (item.count > 1) {
           slot.innerHTML += `<span class="item-count">${item.count}</span>`;
         }
@@ -653,7 +661,7 @@ function renderInventory() {
     if (equipped) {
       const def = ITEM_DEFS[equipped.itemId];
       if (def) {
-        slotEl.innerHTML = `<i class="item-icon" style="background-position: ${-def.iconX * 35}px ${-def.iconY * 35}px;"></i>`;
+        slotEl.innerHTML = `<i class="item-icon" style="${itemIconStyle(def)}"></i>`;
         slotEl.onmouseenter = (e) => showTooltip(equipped, e);
         slotEl.onmouseleave = hideTooltip;
         slotEl.onclick = () => {
@@ -817,6 +825,10 @@ function updateUI() {
   }, 0);
   $('slot-hp-count').textContent = hpTotal;
   $('slot-mp-count').textContent = mpTotal;
+  const hpVisual = document.querySelector('.hp-potion-visual');
+  const mpVisual = document.querySelector('.mp-potion-visual');
+  if (hpVisual && ITEM_DEFS[400]) hpVisual.style.cssText = itemIconStyle(ITEM_DEFS[400]);
+  if (mpVisual && ITEM_DEFS[403]) mpVisual.style.cssText = itemIconStyle(ITEM_DEFS[403]);
 
   // Janela de Quests
   if (state.quest) {

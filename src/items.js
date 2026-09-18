@@ -194,23 +194,32 @@ export const ITEM_DEFS = {
 let officialItemsPromise;
 export function loadOfficialItems() {
   if (officialItemsPromise) return officialItemsPromise;
-  officialItemsPromise = fetch('/assets/items-db.json')
-    .then((response) => {
-      if (!response.ok) throw new Error(`Banco de itens: HTTP ${response.status}`);
-      return response.json();
+  officialItemsPromise = Promise.all([
+    fetch('/assets/items-db.json'),
+    fetch('/assets/item-icons.json'),
+  ])
+    .then(async ([itemsResponse, iconsResponse]) => {
+      if (!itemsResponse.ok) throw new Error(`Banco de itens: HTTP ${itemsResponse.status}`);
+      if (!iconsResponse.ok) throw new Error(`Mapa de ícones: HTTP ${iconsResponse.status}`);
+      return Promise.all([itemsResponse.json(), iconsResponse.json()]);
     })
-    .then((officialItems) => {
-      hydrateOfficialItems(officialItems);
+    .then(([officialItems, iconMap]) => {
+      hydrateOfficialItems(officialItems, iconMap);
       return ITEM_DEFS;
     });
   return officialItemsPromise;
 }
 
-function hydrateOfficialItems(officialItems) {
+function hydrateOfficialItems(officialItems, iconMap) {
 for (const [idStr, it] of Object.entries(officialItems)) {
   const numId = Number(idStr);
-  const iconX = it.iconIndex % 20;
-  const iconY = Math.floor(it.iconIndex / 20);
+  const textureIndex = iconMap[numId];
+  const usesBaseAtlas = Number.isInteger(textureIndex) && textureIndex >= 0 && textureIndex < 1000;
+  const expandedIndex = Number.isInteger(textureIndex) && textureIndex >= 1000 ? textureIndex - 1000 : 0;
+  const sheetNum = usesBaseAtlas ? 0 : Math.floor(expandedIndex / 100) + 1;
+  const sheetIndex = usesBaseAtlas ? textureIndex : expandedIndex % 100;
+  const iconX = sheetIndex % 10;
+  const iconY = Math.floor(sheetIndex / 10);
 
   let itemType = 'armor';
   if (it.slot === 'consumable') itemType = 'consumable';
@@ -238,6 +247,8 @@ for (const [idStr, it] of Object.entries(officialItems)) {
     reqCon: it.reqCon,
     iconX,
     iconY,
+    sheetNum,
+    usesBaseAtlas,
     rarity,
     price: it.price,
     desc: it.slot === 'consumable'
