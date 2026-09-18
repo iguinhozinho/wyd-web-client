@@ -971,6 +971,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Space') hit();
   if (e.code === 'Escape') {
     closeAllWindows();
+    clickAttackTarget = null;
     $('target-card').classList.add('is-hidden');
   }
 });
@@ -1076,7 +1077,10 @@ function checkEnemyStatus() {
 }
 
 $('hit').onclick = hit;
-$('btn-close-target').onclick = () => $('target-card').classList.add('is-hidden');
+$('btn-close-target').onclick = () => {
+  clickAttackTarget = null;
+  $('target-card').classList.add('is-hidden');
+};
 
 // The lobby previews appearances without changing progression or saving a choice.
 function setLobbyInert(open) {
