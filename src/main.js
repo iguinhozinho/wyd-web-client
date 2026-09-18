@@ -488,6 +488,7 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     return;
   }
   clickAttackTarget = null;
+  $('target-card').classList.add('is-hidden');
   const hit = raycaster.intersectObject(terrain, true)[0];
   if (hit) {
     moveTarget = hit.point.clone();
@@ -1381,6 +1382,7 @@ renderer.setAnimationLoop((time) => {
   let moving = false;
   if (keyboard.lengthSq()) {
     clickAttackTarget = null;
+    $('target-card').classList.add('is-hidden');
     moveTarget = null;
     destinationRing.visible = false;
     keyboard.normalize();
