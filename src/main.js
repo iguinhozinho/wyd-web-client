@@ -571,6 +571,9 @@ $('btn-sound').onclick = () => {
 
 // Switch Hero
 $('btn-switch-hero').onclick = () => {
+  auto = false;
+  $('slot-5').classList.remove('active');
+  clickAttackTarget = null;
   $('lobby').style.display = 'flex';
   setLobbyInert(true);
   held.clear();
@@ -1214,6 +1217,8 @@ try {
   }
 
   async function loadMap(id) {
+    auto = false;
+    $('slot-5').classList.remove('active');
     activeMapId = id;
     clickAttackTarget = null;
     $('target-card').classList.add('is-hidden');
