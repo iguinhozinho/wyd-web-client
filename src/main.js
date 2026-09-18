@@ -1013,6 +1013,7 @@ function hit() {
 function checkEnemyStatus() {
   if (enemyCurrentHp <= 0 && activeEnemyActor?.alive) {
     const defeated = activeEnemyActor;
+    clickAttackTarget = null;
     defeated.alive = false;
     const deathDuration = defeated.controller?.setMotion('death') || 900;
     defeated.dyingUntil = performance.now() + Math.max(700, deathDuration);
@@ -1068,7 +1069,10 @@ function checkEnemyStatus() {
 
     log(`${defeated.name} derrotado · +25 XP · +10 Ouro.`);
     const next = nearestLivingEnemy();
-    if (next) setActiveEnemy(next);
+    if (next) {
+      setActiveEnemy(next);
+      $('target-card').classList.add('is-hidden');
+    }
     else {
       enemyCurrentHp = 0;
       $('target-card').classList.add('is-hidden');
@@ -1211,6 +1215,8 @@ try {
 
   async function loadMap(id) {
     activeMapId = id;
+    clickAttackTarget = null;
+    $('target-card').classList.add('is-hidden');
     const version = ++loadVersion;
     $('loading').classList.toggle('loading-compact', Boolean(terrain));
     $('loading').style.display = 'flex';
