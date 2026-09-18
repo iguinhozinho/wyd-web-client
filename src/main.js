@@ -171,6 +171,7 @@ let characterRoot = null;
 let enemyController = null;
 let enemyActors = [];
 let activeEnemyActor = null;
+let clickAttackTarget = null;
 const characterCache = new Map();
 
 const REGION_CREATURES = {
@@ -481,10 +482,12 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   if (enemyHit) {
     const actor = enemyHit.object.userData.enemyActor;
     setActiveEnemy(actor);
+    clickAttackTarget = actor;
     $('target-card').classList.remove('is-hidden');
     if (hero.position.distanceTo(actor.root.position) > 4) moveTarget = actor.root.position.clone();
     return;
   }
+  clickAttackTarget = null;
   const hit = raycaster.intersectObject(terrain, true)[0];
   if (hit) {
     moveTarget = hit.point.clone();
@@ -1373,6 +1376,7 @@ renderer.setAnimationLoop((time) => {
 
   let moving = false;
   if (keyboard.lengthSq()) {
+    clickAttackTarget = null;
     moveTarget = null;
     destinationRing.visible = false;
     keyboard.normalize();
@@ -1410,6 +1414,8 @@ renderer.setAnimationLoop((time) => {
       hero.rotation.y = Math.atan2(direction.x, direction.z);
     }
   }
+
+  if (clickAttackTarget?.alive && hero.position.distanceTo(clickAttackTarget.root.position) <= 4.2) hit();
 
   // Atualizar coordenadas na barra superior
   const coordX = Math.round(2100 + hero.position.x);
