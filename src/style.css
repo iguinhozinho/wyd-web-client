@@ -281,6 +281,17 @@ canvas {
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock-btn > kbd {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  color: #a99b7b;
+  font: 700 8px/1 var(--font-sans);
+  opacity: .8;
 }
 .dock-icon-wrapper {
   position: relative;
@@ -447,6 +458,32 @@ canvas {
   top: 80px;
   width: 320px;
 }
+#help-window {
+  right: 18px;
+  top: 64px;
+  width: min(340px, calc(100vw - 36px));
+}
+.shortcut-list > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 5px 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  font-size: .8rem;
+}
+.shortcut-list kbd {
+  padding: 4px 7px;
+  border: 1px solid rgba(229, 176, 34, .28);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: rgba(229, 176, 34, .08);
+  color: var(--gold-light);
+  font: 700 .7rem var(--font-sans);
+}
+.shortcut-list small { color: var(--text-muted); font-size: .68rem; }
+.shortcut-list p { margin: 4px 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
 .char-profile-header {
   display: flex;
   align-items: center;
@@ -1088,7 +1125,7 @@ canvas {
   width: 35px;
   height: 35px;
   background-image: url('/assets/itemicon01.png');
-  background-size: 350px 350px;
+  background-size: 700px 700px;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 }
@@ -1100,7 +1137,7 @@ canvas {
   .location-pill { display: none; }
   .btn-text-action span { display: none; }
   .btn-text-action { width: 36px; padding: 0; justify-content: center; }
-  #character-window, #inventory-window, #skills-window, #quests-window {
+  #character-window, #inventory-window, #skills-window, #quests-window, #help-window {
     left: 82px;
     width: min(360px, calc(100vw - 94px));
   }
@@ -1126,7 +1163,7 @@ canvas {
   .dock-btn span { display: none; }
   .dock-btn:hover { transform: none; }
 
-  #character-window, #inventory-window, #skills-window, #quests-window {
+  #character-window, #inventory-window, #skills-window, #quests-window, #help-window {
     position: fixed;
     left: 8px;
     right: 8px;
@@ -1153,7 +1190,7 @@ canvas {
   #side-dock { top: 64px; }
   .dock-btn { width: 44px; height: 44px; }
   .dock-btn span { display: none; }
-  #character-window, #inventory-window, #skills-window, #quests-window {
+  #character-window, #inventory-window, #skills-window, #quests-window, #help-window {
     top: 62px;
     max-height: calc(100vh - 140px);
     overflow-y: auto;

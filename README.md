@@ -61,7 +61,7 @@ npm run preview
 
 O importador não extrai RARs. Primeiro extraia o cliente para a pasta `extracted/CLIENTE COM GUILDS 759`, preservando as pastas `Env` e `Mesh`. Os RARs originais ficam fora deste repositório.
 
-Mais detalhes estão em [docs/EXECUCAO.md](docs/EXECUCAO.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+Mais detalhes estão em [docs/EXECUCAO.md](docs/EXECUCAO.md), [docs/ARQUITETURA.md](docs/ARQUITETURA.md) e [docs/INTERFACE-E-CONTROLES.md](docs/INTERFACE-E-CONTROLES.md).
 
 ## Achados e formato
 

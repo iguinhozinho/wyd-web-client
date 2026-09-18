@@ -805,6 +805,7 @@ $('btn-dock-status').onclick = () => toggleWindow('character-window', 'btn-dock-
 $('btn-dock-inv').onclick = () => toggleWindow('inventory-window', 'btn-dock-inv');
 $('btn-dock-skills').onclick = () => toggleWindow('skills-window', 'btn-dock-skills');
 $('btn-dock-quests').onclick = () => toggleWindow('quests-window', 'btn-dock-quests');
+$('btn-help').onclick = () => toggleWindow('help-window');
 document.querySelectorAll('.window-close-btn').forEach((btn) => {
   btn.onclick = () => {
     const winId = btn.dataset.close;
@@ -841,10 +842,13 @@ document.querySelectorAll('.btn-use-skill').forEach((btn) => {
 addEventListener('keydown', (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName) || e.target?.isContentEditable;
   if (typing || e.repeat || $('lobby').style.display !== 'none') return;
+  const handled = /^(KeyC|KeyV|KeyI|KeyK|KeyQ|KeyH|Digit[1-5]|Space|Escape)$/.test(e.code);
+  if (handled) e.preventDefault();
   if (e.code === 'KeyC') toggleWindow('character-window', 'btn-dock-status');
   if (e.code === 'KeyV' || e.code === 'KeyI') toggleWindow('inventory-window', 'btn-dock-inv');
   if (e.code === 'KeyK') toggleWindow('skills-window', 'btn-dock-skills');
   if (e.code === 'KeyQ') toggleWindow('quests-window', 'btn-dock-quests');
+  if (e.code === 'KeyH') toggleWindow('help-window');
   if (e.code === 'Digit1') useQuickPotion('hp');
   if (e.code === 'Digit2') useQuickPotion('mp');
   if (e.code === 'Digit3') castSkill('bash');
