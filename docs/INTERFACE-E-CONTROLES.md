@@ -17,6 +17,7 @@ Os dados e recursos importados continuam separados da composição da interface.
 | Habilidades | `K` | Dock esquerdo |
 | Missões | `Q` | Dock esquerdo |
 | Ajuda de controles | `H` | Barra superior |
+| Mostrar ou ocultar minimapa | `M` | Minimapa |
 | Fechar painéis e alvo | `Esc` | Global |
 
 Somente um painel principal fica aberto de cada vez. Abrir outro painel fecha o anterior, e todos possuem fechamento explícito. Os atalhos são ignorados enquanto o usuário digita em campos, seletores ou botões.

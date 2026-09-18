@@ -310,6 +310,21 @@ canvas {
   padding: 1px 5px;
   border-radius: 8px;
 }
+#minimap {
+  position: absolute;
+  right: 18px;
+  bottom: 86px;
+  z-index: 38;
+  padding: 5px;
+  border: 1px solid var(--border-panel);
+  border-radius: 6px;
+  background: rgba(8, 12, 17, .82);
+  box-shadow: 0 7px 24px rgba(0, 0, 0, .5);
+  backdrop-filter: blur(8px);
+}
+#minimap canvas { display: block; width: 144px; height: 144px; cursor: crosshair; }
+#minimap > span { display: flex; justify-content: space-between; padding: 5px 2px 1px; color: #aa9975; font-size: 8px; letter-spacing: 1.5px; }
+#minimap kbd { font: inherit; color: var(--gold-light); }
 
 /* ==========================================================================
    Frame do Alvo / Target (Superior Centro)
@@ -1184,6 +1199,8 @@ canvas {
   .vital-glass { width: 46px; height: 46px; }
   .vital-label b { display: none; }
   .vital-label { padding: 1px 5px; }
+  #minimap { right: 8px; bottom: 78px; }
+  #minimap canvas { width: 104px; height: 104px; }
 }
 
 @media (max-height: 620px) {

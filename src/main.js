@@ -259,6 +259,9 @@ async function createEnemyActor(spec, position, index) {
     while (root.children.length) root.remove(root.children[0]);
     if (label) root.add(label);
     root.add(controller.group);
+    controller.group.traverse((object) => {
+      if (object.isMesh) object.userData.enemyActor = actor;
+    });
     actor.controller = controller;
   } catch (error) {
     console.warn(`Criatura ${spec.id} indisponível:`, error);
@@ -452,6 +455,15 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   const box = renderer.domElement.getBoundingClientRect();
   pointer.set(((e.clientX - box.left) / box.width) * 2 - 1, -((e.clientY - box.top) / box.height) * 2 + 1);
   raycaster.setFromCamera(pointer, camera);
+  const enemyHit = raycaster.intersectObjects(enemyActors.filter((actor) => actor.alive).map((actor) => actor.root), true)
+    .find((entry) => entry.object.userData.enemyActor);
+  if (enemyHit) {
+    const actor = enemyHit.object.userData.enemyActor;
+    setActiveEnemy(actor);
+    $('target-card').classList.remove('is-hidden');
+    if (hero.position.distanceTo(actor.root.position) > 4) moveTarget = actor.root.position.clone();
+    return;
+  }
   const hit = raycaster.intersectObject(terrain, true)[0];
   if (hit) {
     moveTarget = hit.point.clone();
@@ -459,6 +471,69 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     destinationRing.position.set(moveTarget.x, moveTarget.y + 0.05, moveTarget.z);
     destinationRing.visible = true;
   }
+});
+
+const minimapCanvas = $('minimap-canvas');
+const minimapContext = minimapCanvas.getContext('2d');
+const minimapBase = document.createElement('canvas');
+minimapBase.width = minimapBase.height = 64;
+const minimapBaseContext = minimapBase.getContext('2d');
+
+function rebuildMinimap() {
+  if (!terrainData) return;
+  const pixels = minimapBaseContext.createImageData(64, 64);
+  for (let z = 0; z < 64; z++) {
+    for (let x = 0; x < 64; x++) {
+      const tile = terrainData.tiles[z * 64 + x];
+      const offset = (z * 64 + x) * 4;
+      const h = THREE.MathUtils.clamp(tile[0] + 110, 45, 180);
+      pixels.data[offset] = h * 0.52;
+      pixels.data[offset + 1] = h * 0.66;
+      pixels.data[offset + 2] = h * 0.43;
+      pixels.data[offset + 3] = 255;
+    }
+  }
+  minimapBaseContext.putImageData(pixels, 0, 0);
+}
+
+function drawMinimap() {
+  if (!terrainData || $('minimap').classList.contains('is-hidden')) return;
+  const size = minimapCanvas.width;
+  minimapContext.clearRect(0, 0, size, size);
+  minimapContext.imageSmoothingEnabled = false;
+  minimapContext.drawImage(minimapBase, 0, 0, size, size);
+  minimapContext.fillStyle = 'rgba(8, 12, 16, .42)';
+  for (const collider of worldColliders) {
+    minimapContext.beginPath();
+    minimapContext.arc(collider.x / 64 * size, collider.z / 64 * size, Math.max(1, collider.radius / 64 * size), 0, Math.PI * 2);
+    minimapContext.fill();
+  }
+  for (const actor of enemyActors) {
+    if (!actor.alive) continue;
+    minimapContext.fillStyle = actor === activeEnemyActor ? '#ffdf72' : '#d15c4d';
+    minimapContext.beginPath();
+    minimapContext.arc(actor.root.position.x / 64 * size, actor.root.position.z / 64 * size, actor === activeEnemyActor ? 3.5 : 2.3, 0, Math.PI * 2);
+    minimapContext.fill();
+  }
+  minimapContext.fillStyle = '#f7f1d2';
+  minimapContext.beginPath();
+  minimapContext.arc(hero.position.x / 64 * size, hero.position.z / 64 * size, 3.5, 0, Math.PI * 2);
+  minimapContext.fill();
+  minimapContext.strokeStyle = '#151a1d';
+  minimapContext.stroke();
+}
+
+minimapCanvas.addEventListener('click', (event) => {
+  if (!terrainData) return;
+  const box = minimapCanvas.getBoundingClientRect();
+  moveTarget = new THREE.Vector3(
+    THREE.MathUtils.clamp((event.clientX - box.left) / box.width * 64, .5, 62.5),
+    0,
+    THREE.MathUtils.clamp((event.clientY - box.top) / box.height * 64, .5, 62.5)
+  );
+  moveTarget.y = height(moveTarget.x, moveTarget.z);
+  destinationRing.position.set(moveTarget.x, moveTarget.y + .05, moveTarget.z);
+  destinationRing.visible = true;
 });
 
 // Sound toggle
@@ -842,13 +917,14 @@ document.querySelectorAll('.btn-use-skill').forEach((btn) => {
 addEventListener('keydown', (e) => {
   const typing = /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target?.tagName) || e.target?.isContentEditable;
   if (typing || e.repeat || $('lobby').style.display !== 'none') return;
-  const handled = /^(KeyC|KeyV|KeyI|KeyK|KeyQ|KeyH|Digit[1-5]|Space|Escape)$/.test(e.code);
+  const handled = /^(KeyC|KeyV|KeyI|KeyK|KeyQ|KeyH|KeyM|Digit[1-5]|Space|Escape)$/.test(e.code);
   if (handled) e.preventDefault();
   if (e.code === 'KeyC') toggleWindow('character-window', 'btn-dock-status');
   if (e.code === 'KeyV' || e.code === 'KeyI') toggleWindow('inventory-window', 'btn-dock-inv');
   if (e.code === 'KeyK') toggleWindow('skills-window', 'btn-dock-skills');
   if (e.code === 'KeyQ') toggleWindow('quests-window', 'btn-dock-quests');
   if (e.code === 'KeyH') toggleWindow('help-window');
+  if (e.code === 'KeyM') $('minimap').classList.toggle('is-hidden');
   if (e.code === 'Digit1') useQuickPotion('hp');
   if (e.code === 'Digit2') useQuickPotion('mp');
   if (e.code === 'Digit3') castSkill('bash');
@@ -1151,6 +1227,7 @@ try {
       terrain.add(...meshes);
       scene.add(terrain);
       terrainData = data;
+      rebuildMinimap();
 
       $('loading').textContent = 'Posicionando objetos do mundo…';
       try {
@@ -1213,6 +1290,7 @@ updateUI();
 let previous = 0;
 let elapsed = 0;
 let lastCoords = '';
+let lastMinimapDraw = 0;
 const keyboard = new THREE.Vector3();
 const nextPosition = new THREE.Vector3();
 const moveDirection = new THREE.Vector3();
@@ -1222,6 +1300,10 @@ renderer.setAnimationLoop((time) => {
   const dt = Math.min((time - previous) / 1000, 0.1);
   previous = time;
   elapsed += dt;
+  if (time - lastMinimapDraw > 180) {
+    drawMinimap();
+    lastMinimapDraw = time;
+  }
 
   // Auto hunt loop
   if (auto && elapsed >= 1.0) {
