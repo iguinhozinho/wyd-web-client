@@ -37,8 +37,10 @@ O preview fica em <http://127.0.0.1:4173/>.
 - Importação de 121 terrenos `.trn` e 98 texturas `.wys` reais do cliente.
 - Seleção de terreno, câmera orbital e zoom.
 - Personagens `ch01`, `ch02` e Theodore FBX, com animação e seleção no lobby.
-- Javali `bo01` com duas partes corporais e animações idle, walk, run e attack.
+- Catálogo com 60 tipos de criatura exportados; Armia, Azran, Erion e demais setores recebem grupos diferentes de monstros completos.
+- Criaturas com idle, caminhada, ataque, vida, morte, respawn, seleção por proximidade e colisão básica com o cenário.
 - 121 terrenos e 798 modelos de cenário exportados dos dados locais.
+- Banco importado com 2.523 itens originais e inventário inicial baseado nos identificadores oficiais.
 - XP, nível, ouro e melhoria de arma, salvos no localStorage. Classes são apenas seleção visual/nome nesta fase.
 - Layout adaptável e mensagens de erro de carregamento.
 
@@ -73,8 +75,8 @@ A renderização usa o terreno, objetos instanciados, texturas DDS, colisores b�
 
 ## Próximas etapas do port completo
 
-1. Implementar camadas restantes do terreno e extrair objetos, malhas, esqueletos e animações; converter modelos para glTF.
-2. Implementar movimento e colisão a partir dos mapas e regras originais.
+1. Confirmar os aliases de animação, escala e orientação das 60 criaturas e converter os modelos mais usados para glTF.
+2. Substituir colisores aproximados pela navegação e pelas regras de colisão dos mapas originais.
 3. Escolher entre portar a lógica do servidor ou manter TMSrv/DBSrv com um gateway WebSocket → TCP que valide sessões e mensagens. O navegador não se conecta diretamente ao socket nativo.
 4. Mover combate, inventário e progresso para servidor autoritativo; implementar contas e persistência. localStorage serve somente ao teste.
 5. Só então configurar domínio, HTTPS, hospedagem e, se desejado, CDN/telemetria Cloudflare. Nada foi publicado nem foi criada conta externa.

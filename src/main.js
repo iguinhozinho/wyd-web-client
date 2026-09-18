@@ -39,6 +39,7 @@ let worldReady = false;
 let worldColliders = [];
 let loadVersion = 0;
 let moveTarget = null;
+let activeMapId = 'Field1616';
 
 // Backend WebSocket (com fallback gracioso offline)
 let ws = null;
@@ -173,12 +174,40 @@ let enemyActors = [];
 let activeEnemyActor = null;
 const characterCache = new Map();
 
-const CREATURES = [
-  { id: 'bo01', name: 'Javali Selvagem', hp: 60, scale: 1.0 },
-  { id: 'wf01', name: 'Lobo Cinzento', hp: 72, scale: 0.95 },
-  { id: 'be01', name: 'Urso de Armia', hp: 95, scale: 1.05 },
-  { id: 'or02', name: 'Orc Errante', hp: 110, scale: 1.0 },
-];
+const REGION_CREATURES = {
+  armia: [
+    { id: 'bo01', name: 'Javali Selvagem', hp: 60, scale: 1 },
+    { id: 'wf01', name: 'Lobo Cinzento', hp: 72, scale: 0.95 },
+    { id: 'be01', name: 'Urso de Armia', hp: 95, scale: 1.05 },
+    { id: 'tg01', name: 'Tigre Errante', hp: 110, scale: 0.96 },
+  ],
+  azran: [
+    { id: 'hy01', name: 'Hidra Jovem', hp: 105, scale: 0.48 },
+    { id: 'sp01', name: 'Aranha de Azran', hp: 92, scale: 0.5 },
+    { id: 'gg01', name: 'Gárgula Antiga', hp: 128, scale: 0.44 },
+    { id: 'dr02', name: 'Draconiano', hp: 145, scale: 0.48 },
+  ],
+  erion: [
+    { id: 'bd02', name: 'Ave de Erion', hp: 88, scale: 0.92 },
+    { id: 'lb01', name: 'Lobisomem', hp: 120, scale: 0.92 },
+    { id: 'lk01', name: 'Cavaleiro Perdido', hp: 142, scale: 0.92 },
+    { id: 'bt01', name: 'Morcego Sombrio', hp: 76, scale: 0.85 },
+  ],
+  kersef: [
+    { id: 'cr01', name: 'Criatura de Kersef', hp: 95, scale: 0.92 },
+    { id: 'gr01', name: 'Guerreiro Selvagem', hp: 118, scale: 0.92 },
+    { id: 'cp01', name: 'Escorpião', hp: 104, scale: 0.88 },
+    { id: 'kk01', name: 'Guardião Antigo', hp: 150, scale: 0.92 },
+  ],
+};
+
+function creaturesForMap(mapId) {
+  const sector = Number(mapId.slice(5, 7));
+  if (sector === 16) return REGION_CREATURES.armia;
+  if (sector === 13 || sector === 14) return REGION_CREATURES.azran;
+  if (sector === 15 || sector === 17 || sector === 18) return REGION_CREATURES.erion;
+  return REGION_CREATURES.kersef;
+}
 
 function setActiveEnemy(actor) {
   if (!actor?.alive) return;
@@ -237,21 +266,71 @@ async function createEnemyActor(spec, position, index) {
   return actor;
 }
 
-async function populateEnemies(spawn, version) {
-  enemyActors.forEach((actor) => scene.remove(actor.root));
+function openPositionNear(origin, offsetX = 0, offsetZ = 0) {
+  const desired = new THREE.Vector3(origin.x + offsetX, 0, origin.z + offsetZ);
+  if (!isBlocked(desired)) {
+    desired.y = height(desired.x, desired.z);
+    return desired;
+  }
+  for (let radius = 2; radius <= 10; radius += 1.5) {
+    for (let step = 0; step < 12; step++) {
+      const angle = (step / 12) * Math.PI * 2;
+      desired.set(origin.x + Math.cos(angle) * radius, 0, origin.z + Math.sin(angle) * radius);
+      if (!isBlocked(desired)) {
+        desired.y = height(desired.x, desired.z);
+        return desired;
+      }
+    }
+  }
+  desired.copy(origin);
+  desired.y = height(desired.x, desired.z);
+  return desired;
+}
+
+function safestMapSpawn(preferred = new THREE.Vector3(32, 0, 32)) {
+  const candidate = preferred.clone();
+  for (let radius = 0; radius <= 28; radius += 2) {
+    const steps = radius === 0 ? 1 : Math.max(12, Math.ceil(radius * 2.4));
+    for (let step = 0; step < steps; step++) {
+      const angle = (step / steps) * Math.PI * 2;
+      candidate.set(preferred.x + Math.cos(angle) * radius, 0, preferred.z + Math.sin(angle) * radius);
+      if (candidate.x < 5 || candidate.x > 59 || candidate.z < 5 || candidate.z > 59) continue;
+      if (isBlocked(candidate, 2.2)) continue;
+      const slope = Math.max(
+        Math.abs(height(candidate.x + 0.8, candidate.z) - height(candidate.x - 0.8, candidate.z)),
+        Math.abs(height(candidate.x, candidate.z + 0.8) - height(candidate.x, candidate.z - 0.8))
+      );
+      if (slope > 0.65) continue;
+      candidate.y = height(candidate.x, candidate.z);
+      return candidate.clone();
+    }
+  }
+  candidate.copy(preferred);
+  candidate.y = height(candidate.x, candidate.z);
+  return candidate;
+}
+
+async function populateEnemies(mapId, spawn, version) {
+  enemyActors.forEach((actor) => {
+    actor.root.userData.labelDiv?.remove();
+    scene.remove(actor.root);
+  });
   enemyActors = [];
   activeEnemyActor = null;
   enemy = null;
   enemyController = null;
   const offsets = [[3, 1], [-4, 3], [5, -4], [-5, -4]];
-  const actors = await Promise.all(CREATURES.map((spec, index) => {
+  const specs = creaturesForMap(mapId);
+  const actors = await Promise.all(specs.map((spec, index) => {
     const [dx, dz] = offsets[index];
-    const position = new THREE.Vector3(spawn.x + dx, 0, spawn.z + dz);
-    position.y = height(position.x, position.z);
+    const position = openPositionNear(spawn, dx, dz);
     return createEnemyActor(spec, position, index);
   }));
   if (version !== loadVersion) {
-    actors.forEach((actor) => scene.remove(actor.root));
+    actors.forEach((actor) => {
+      actor.root.userData.labelDiv?.remove();
+      scene.remove(actor.root);
+    });
     return;
   }
   enemyActors = actors;
@@ -333,10 +412,15 @@ function canMove(from, to) {
   });
 }
 
+function isBlocked(position, padding = 0.35) {
+  return worldColliders.some((c) => Math.hypot(position.x - c.x, position.z - c.z) < c.radius + padding);
+}
+
 function centerCamera() {
   const { x, y, z } = hero.position;
+  const offset = activeMapId === 'Field1314' ? [-10, 11, -8] : [8, 11, 10];
   controls.target.set(x, y + 0.7, z);
-  camera.position.set(x + 8, y + 11, z + 10);
+  camera.position.set(x + offset[0], y + offset[1], z + offset[2]);
   controls.update();
   sfx.click();
 }
@@ -1001,6 +1085,7 @@ try {
   }
 
   async function loadMap(id) {
+    activeMapId = id;
     const version = ++loadVersion;
     $('loading').classList.toggle('loading-compact', Boolean(terrain));
     $('loading').style.display = 'flex';
@@ -1075,11 +1160,17 @@ try {
         worldColliders = [];
       }
 
-      const spawn = id === 'Field1616' ? new THREE.Vector3(26.5, 0, 23) : new THREE.Vector3(32, 0, 32);
-      spawn.y = height(spawn.x, spawn.z);
+      const verifiedSpawns = {
+        Field1616: new THREE.Vector3(26.5, 0, 23),
+        Field1314: new THREE.Vector3(25, 0, 45),
+      };
+      const requestedSpawn = verifiedSpawns[id] || new THREE.Vector3(32, 0, 32);
+      const spawn = verifiedSpawns[id] && !isBlocked(requestedSpawn, 1.2)
+        ? openPositionNear(requestedSpawn)
+        : safestMapSpawn(requestedSpawn);
       hero.position.copy(spawn);
       $('loading').textContent = 'Acordando criaturas da região…';
-      await populateEnemies(spawn, version);
+      await populateEnemies(id, spawn, version);
       ring.position.set(spawn.x, spawn.y + 0.04, spawn.z);
       centerCamera();
 

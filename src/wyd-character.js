@@ -1,13 +1,17 @@
 import * as THREE from 'three';import {DDSLoader} from 'three/addons/loaders/DDSLoader.js';
 const mat=values=>new THREE.Matrix4().fromArray(values);
+const dataCache=new Map(),textureCache=new Map();
 export async function loadWydCharacter(url,renderer){
-  const response=await fetch(url);if(!response.ok)throw new Error(`Personagem: HTTP ${response.status}`);const data=await response.json(),base=new URL('.',new URL(url,location.href));
+  if(!dataCache.has(url))dataCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`Personagem: HTTP ${response.status}`);return response.json();}));
+  const data=await dataCache.get(url),base=new URL('.',new URL(url,location.href));
   const group=new THREE.Group(),dds=new DDSLoader(),materials=new Map();
   const bones=new Map(data.skeleton.map(entry=>[entry.id,{...entry,world:new THREE.Matrix4()}]));
   const parts=await Promise.all(data.parts.map(async part=>{
     let material=materials.get(part.texture);
     if(!material){
-      const texture=await dds.loadAsync(new URL(part.texture,base).href);
+      const textureUrl=new URL(part.texture,base).href;
+      if(!textureCache.has(textureUrl))textureCache.set(textureUrl,dds.loadAsync(textureUrl));
+      const texture=await textureCache.get(textureUrl);
       texture.colorSpace=THREE.SRGBColorSpace;
       texture.minFilter=THREE.LinearFilter;
       texture.magFilter=THREE.LinearFilter;
