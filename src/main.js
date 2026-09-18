@@ -877,11 +877,12 @@ document.querySelectorAll('.btn-add-point').forEach((btn) => {
 
 // Recompensa de Quest
 $('claim-quest-btn').onclick = () => {
+  const quest = state.quest;
   if (claimQuest(state)) {
     sfx.levelUp();
-    showFloatingText('+250 EXP', 'xp');
-    showFloatingText('+100 Ouro', 'gold');
-    log('Missão "Caçada em Armia" concluída!');
+    showFloatingText(`+${quest.rewardXp} EXP`, 'xp');
+    showFloatingText(`+${quest.rewardGold} Ouro`, 'gold');
+    log(`Missão concluída: ${quest.title}.`);
     save();
     updateUI();
   }
@@ -946,7 +947,8 @@ $('slot-4').onclick = () => castSkill('heal');
 $('slot-5').onclick = () => {
   auto = !auto;
   $('slot-5').classList.toggle('active', auto);
-  $('target-card').classList.remove('is-hidden');
+  if (auto && activeEnemyActor?.alive) $('target-card').classList.remove('is-hidden');
+  if (!auto) $('target-card').classList.add('is-hidden');
   sfx.click();
   log(auto ? 'Caça automática ATIVADA.' : 'Caça automática PAUSADA.');
 };
@@ -1367,7 +1369,10 @@ renderer.setAnimationLoop((time) => {
   if (auto && elapsed >= 1.0) {
     if (!activeEnemyActor?.alive) {
       const next = nearestLivingEnemy();
-      if (next) setActiveEnemy(next);
+      if (next) {
+        setActiveEnemy(next);
+        $('target-card').classList.remove('is-hidden');
+      }
     }
     const dist = hero && enemy ? hero.position.distanceTo(enemy.position) : Infinity;
     if (dist > 4.0) {
