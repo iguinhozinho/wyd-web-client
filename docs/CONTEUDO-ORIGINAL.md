@@ -17,7 +17,7 @@ Os resultados ficam em `public/assets/creatures/<prefixo>/` e o índice geral em
 
 O manifesto registra `parts` e `expectedParts` separadamente. Alguns tipos antigos declaram oito slots, mas não possuem uma malha base `01` para todos eles; esses casos devem ser tratados como personagens equipáveis ou variantes, sem inventar partes ausentes.
 
-As animações originais também são preservadas como `motion01`, `motion02` etc. Os aliases `idle`, `walk`, `run`, `attack` e `death` são uma aproximação inicial e precisam ser confirmados por tipo durante a integração no jogo.
+As animações originais também são preservadas como `motion01`, `motion02` etc. O mapeamento segue `ECHAR_MOTION` do cliente: `motion01` para parado, `motion03` para caminhada, `motion04` para corrida, `motion05` para o primeiro ataque e `motion12` para morte quando o tipo possui essa animação. Variações especiais ainda precisam ser confirmadas por tipo.
 
 ## Uso no protótipo
 

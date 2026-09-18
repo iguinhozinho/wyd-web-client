@@ -96,10 +96,10 @@ for (const definition of definitions) {
   const animations = {
     ...motions,
     idle,
-    walk: motion(2, idle),
-    run: motion(3, motion(2, idle)),
+    walk: motion(3, idle),
+    run: motion(4, motion(3, idle)),
     attack: motion(5, motion(4, motion(3, idle))),
-    death: motion(motionCount, idle),
+    death: motionCount >= 12 ? motion(12, idle) : idle,
   };
 
   const id = prefix.toLowerCase();

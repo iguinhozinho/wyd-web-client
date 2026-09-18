@@ -1,5 +1,6 @@
 import * as THREE from 'three';import {DDSLoader} from 'three/addons/loaders/DDSLoader.js';
 const mat=values=>new THREE.Matrix4().fromArray(values);
+const poseMat=values=>values?.length===16&&values.every(value=>Number.isFinite(value)&&Math.abs(value)<10000)?mat(values):new THREE.Matrix4();
 const dataCache=new Map(),textureCache=new Map();
 export async function loadWydCharacter(url,renderer){
   if(!dataCache.has(url))dataCache.set(url,fetch(url).then(response=>{if(!response.ok)throw new Error(`Personagem: HTTP ${response.status}`);return response.json();}));
@@ -40,9 +41,10 @@ export async function loadWydCharacter(url,renderer){
   // Após o skinning, as malhas do cliente usam Z como eixo vertical; Three.js usa Y.
   group.scale.setScalar(1.05);group.rotation.x=-Math.PI/2;
   const v=new THREE.Vector3(),normal=new THREE.Vector3(),temp=new THREE.Vector3();let lastTick=-1;
-  let motion='idle';function setMotion(next){if(data.animations?.[next]&&next!==motion){motion=next;lastTick=-1;}}
+  const motionAliases={idle:'motion01',walk:'motion03',run:'motion04',attack:'motion05',death:'motion12'};
+  let motion='idle';function setMotion(next){const resolved=data.animations?.[motionAliases[next]]?motionAliases[next]:data.animations?.[next]?next:'idle';if(resolved!==motion){motion=resolved;lastTick=-1;}}
   function update(time){const animation=data.animations?.[motion]||data.animation,tick=Math.floor(time/(motion==='run'?70:125))%animation.ticks;if(tick===lastTick)return;lastTick=tick;const pose=animation.frames[tick];
-    for(const entry of data.skeleton){const bone=bones.get(entry.id),local=mat(pose[entry.id]);bone.world.copy(local);if(entry.parent>=0&&bones.has(entry.parent))bone.world.premultiply(bones.get(entry.parent).world);}
+    for(const entry of data.skeleton){const bone=bones.get(entry.id),local=poseMat(pose[entry.id]);bone.world.copy(local);if(entry.parent>=0&&bones.has(entry.parent))bone.world.premultiply(bones.get(entry.parent).world);}
     for(const {mesh,part,source,inverseBind} of parts){const positions=mesh.geometry.attributes.position,normals=mesh.geometry.attributes.normal,skins=part.palette.map((boneId,i)=>new THREE.Matrix4().copy(bones.get(boneId)?.world||new THREE.Matrix4()).multiply(inverseBind[i])),normalSkins=skins.map(skin=>new THREE.Matrix3().getNormalMatrix(skin));
       for(let i=0;i<part.header.vertexCount;i++){v.fromArray(source,i*3);normal.fromArray(part.normals,i*3);let x=0,y=0,z=0,nx=0,ny=0,nz=0;
         for(let j=0;j<4;j++){const w=part.skinWeights[i*4+j];if(w<=0)continue;const paletteIndex=part.skinIndices[i*4+j],skin=skins[paletteIndex];if(!skin)continue;temp.copy(v).applyMatrix4(skin);x+=temp.x*w;y+=temp.y*w;z+=temp.z*w;temp.copy(normal).applyMatrix3(normalSkins[paletteIndex]);nx+=temp.x*w;ny+=temp.y*w;nz+=temp.z*w;}

@@ -102,7 +102,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#141d24');
 scene.fog = new THREE.Fog('#141d24', 45, 115);
 
-const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
 let renderer, labelRenderer;
 try {
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -263,6 +263,7 @@ async function createEnemyActor(spec, position, index) {
     hp: spec.hp,
     level: 2 + index,
     alive: true,
+    dyingUntil: 0,
     respawnAt: 0,
     home: position.clone(),
     wanderAngle: index * 1.7,
@@ -438,7 +439,7 @@ function isBlocked(position, padding = 0.35) {
 
 function centerCamera() {
   const { x, y, z } = hero.position;
-  const offset = activeMapId === 'Field1314' ? [-10, 11, -8] : [8, 11, 10];
+  const offset = activeMapId === 'Field1314' ? [-10, 9, -8] : [10, 8.5, 12];
   controls.target.set(x, y + 0.7, z);
   camera.position.set(x + offset[0], y + offset[1], z + offset[2]);
   controls.update();
@@ -744,7 +745,8 @@ function castSkill(skillId) {
     currentMp -= 15;
     sfx.swing();
     const dmg = Math.round(damage(state) * 2.2);
-    enemyCurrentHp = Math.max(0, enemyCurrentHp - dmg);
+    activeEnemyActor.hp = Math.max(0, activeEnemyActor.hp - dmg);
+    enemyCurrentHp = activeEnemyActor.hp;
     showFloatingText(`CRÍTICO! ${dmg}`, 'damage');
     log(`Golpe Poderoso causou ${dmg} de dano!`);
     sfx.hit();
@@ -991,8 +993,9 @@ function checkEnemyStatus() {
   if (enemyCurrentHp <= 0 && activeEnemyActor?.alive) {
     const defeated = activeEnemyActor;
     defeated.alive = false;
-    defeated.root.visible = false;
+    defeated.dyingUntil = performance.now() + 900;
     defeated.respawnAt = performance.now() + 8000;
+    defeated.controller?.setMotion('death');
     const prevLvl = state.level;
     reward(state, defeated.id);
     sfx.item();
@@ -1419,11 +1422,18 @@ renderer.setAnimationLoop((time) => {
 
   for (const actor of enemyActors) {
     if (!actor.alive) {
+      if (time < actor.dyingUntil) {
+        actor.controller?.update(time);
+        continue;
+      }
+      actor.root.visible = false;
       if (time >= actor.respawnAt) {
         actor.alive = true;
         actor.hp = actor.maxHp;
         actor.root.position.copy(actor.home);
+        actor.root.rotation.z = 0;
         actor.root.visible = true;
+        actor.controller?.setMotion('idle');
         const hpFill = actor.root.userData.labelDiv?.querySelector('.hp-fill');
         if (hpFill) hpFill.style.width = '100%';
         if (!activeEnemyActor?.alive) setActiveEnemy(actor);
