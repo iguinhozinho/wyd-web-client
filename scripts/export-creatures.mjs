@@ -7,11 +7,35 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.resolve(root, '../extracted/CLIENTE COM GUILDS 759/Mesh');
 const output = path.join(root, 'public/assets/creatures');
 const indexFile = path.join(source, 'BoneAni4.txt');
+const aniSoundFile = path.resolve(root, '../CLIENTE COM GUILDS 759/AniSound4.txt');
 fs.mkdirSync(output, { recursive: true });
 
 const files = new Map(fs.readdirSync(source).map((name) => [name.toLowerCase(), name]));
 const realFile = (name) => files.get(name.toLowerCase());
 const two = (value) => String(value).padStart(2, '0');
+
+function readMotionTables() {
+  const tables = new Map();
+  if (!fs.existsSync(aniSoundFile)) return tables;
+  let current = null;
+  for (const rawLine of fs.readFileSync(aniSoundFile, 'latin1').split(/\r?\n/)) {
+    const header = rawLine.match(/^\[[^\]]+\]\s+(\d+)/);
+    if (header) {
+      current = { entries: [] };
+      tables.set(Number(header[1]), current);
+      continue;
+    }
+    if (!current || !rawLine.trim()) continue;
+    const values = rawLine.trim().split(/\s+/).slice(1).map(Number);
+    if (values.length >= 2 && values.every(Number.isFinite)) {
+      current.entries.push({ animation: values[0], fps: values[1] });
+    }
+  }
+  return tables;
+}
+
+const motionTables = readMotionTables();
+const logicalMotions = { idle: 0, walk: 2, run: 3, attack: 4, strike: 10, death: 11, dead: 12 };
 
 const definitions = fs.readFileSync(indexFile, 'latin1')
   .split(/\r?\n/)
@@ -91,16 +115,18 @@ for (const definition of definitions) {
     const animation = readAnimation(prefix, index);
     if (animation) motions[`motion${two(index)}`] = animation;
   }
-  const motion = (index, fallback) => motions[`motion${two(Math.min(index, motionCount))}`] || fallback;
-  const idle = motion(1, Object.values(motions)[0]);
-  const animations = {
-    ...motions,
-    idle,
-    walk: motion(3, idle),
-    run: motion(4, motion(3, idle)),
-    attack: motion(5, motion(4, motion(3, idle))),
-    death: motionCount >= 12 ? motion(12, idle) : idle,
-  };
+  const table = motionTables.get(skinType);
+  const motionMap = {};
+  const motionFps = {};
+  for (const [name, logicalIndex] of Object.entries(logicalMotions)) {
+    const entry = table?.entries[logicalIndex];
+    const key = entry && motions[`motion${two(entry.animation + 1)}`]
+      ? `motion${two(entry.animation + 1)}`
+      : (name === 'idle' ? Object.keys(motions)[0] : motionMap.idle);
+    motionMap[name] = key;
+    motionFps[name] = entry?.fps || 15;
+  }
+  const idle = motions[motionMap.idle];
 
   const id = prefix.toLowerCase();
   const data = {
@@ -110,7 +136,9 @@ for (const definition of definitions) {
     expectedParts: partCount,
     skeleton,
     animation: idle,
-    animations,
+    animations: motions,
+    motionMap,
+    motionFps,
     parts,
   };
   fs.writeFileSync(path.join(creatureDir, `${id}.json`), JSON.stringify(data));

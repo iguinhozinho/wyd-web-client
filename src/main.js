@@ -265,6 +265,9 @@ async function createEnemyActor(spec, position, index) {
     alive: true,
     dyingUntil: 0,
     respawnAt: 0,
+    hitUntil: 0,
+    attackUntil: 0,
+    nextAttackAt: 0,
     home: position.clone(),
     wanderAngle: index * 1.7,
     wanderTarget: new THREE.Vector3(),
@@ -984,6 +987,7 @@ function hit() {
 
   const dmg = damage(state) + Math.floor(Math.random() * 4 - 2);
   activeEnemyActor.hp = Math.max(0, activeEnemyActor.hp - dmg);
+  activeEnemyActor.hitUntil = now + 320;
   enemyCurrentHp = activeEnemyActor.hp;
   const actorHpFill = activeEnemyActor.root.userData.labelDiv?.querySelector('.hp-fill');
   if (actorHpFill) actorHpFill.style.width = `${(activeEnemyActor.hp / activeEnemyActor.maxHp) * 100}%`;
@@ -1005,9 +1009,9 @@ function checkEnemyStatus() {
   if (enemyCurrentHp <= 0 && activeEnemyActor?.alive) {
     const defeated = activeEnemyActor;
     defeated.alive = false;
-    defeated.dyingUntil = performance.now() + 900;
+    const deathDuration = defeated.controller?.setMotion('death') || 900;
+    defeated.dyingUntil = performance.now() + Math.max(700, deathDuration);
     defeated.respawnAt = performance.now() + 8000;
-    defeated.controller?.setMotion('death');
     const prevLvl = state.level;
     reward(state, defeated.id);
     sfx.item();
@@ -1445,6 +1449,9 @@ renderer.setAnimationLoop((time) => {
         actor.root.position.copy(actor.home);
         actor.root.rotation.z = 0;
         actor.root.visible = true;
+        actor.hitUntil = 0;
+        actor.attackUntil = 0;
+        actor.nextAttackAt = time + 1000;
         actor.controller?.setMotion('idle');
         const hpFill = actor.root.userData.labelDiv?.querySelector('.hp-fill');
         if (hpFill) hpFill.style.width = '100%';
@@ -1452,7 +1459,19 @@ renderer.setAnimationLoop((time) => {
       }
       continue;
     }
-    const isBeingHit = actor === activeEnemyActor && attackPhase > 0;
+    const isBeingHit = time < actor.hitUntil;
+    const distanceToHero = actor.root.position.distanceTo(hero.position);
+    const canFight = $('lobby').style.display === 'none';
+    if (canFight && !isBeingHit && distanceToHero <= 2.1 && time >= actor.nextAttackAt) {
+      actor.attackUntil = time + 650;
+      actor.nextAttackAt = time + 1700 + Math.random() * 450;
+      const incoming = Math.max(2, Math.round(2 + actor.level * 0.8 - defense(state) * 0.08));
+      currentHp = Math.max(1, currentHp - incoming);
+      showFloatingText(`-${incoming} HP`, 'damage');
+      sfx.hit();
+      updateUI();
+    }
+    const isAttacking = time < actor.attackUntil;
     actor.wanderAngle += dt * (0.18 + actor.level * 0.008);
     actor.wanderTarget.set(
       actor.home.x + Math.cos(actor.wanderAngle) * 1.4,
@@ -1462,20 +1481,26 @@ renderer.setAnimationLoop((time) => {
     const dx = actor.wanderTarget.x - actor.root.position.x;
     const dz = actor.wanderTarget.z - actor.root.position.z;
     const length = Math.hypot(dx, dz) || 1;
-    const roaming = !isBeingHit && length > 0.05;
-    if (roaming) {
+    const chasing = canFight && !isBeingHit && !isAttacking && distanceToHero > 2.0 && distanceToHero < 5.5;
+    const roaming = !isBeingHit && !isAttacking && !chasing && length > 0.05;
+    if (chasing || roaming) {
+      const target = chasing ? hero.position : actor.wanderTarget;
+      const moveX = target.x - actor.root.position.x;
+      const moveZ = target.z - actor.root.position.z;
+      const moveLength = Math.hypot(moveX, moveZ) || 1;
       actor.wanderStep.copy(actor.root.position);
-      actor.wanderStep.x += (dx / length) * dt * 0.42;
-      actor.wanderStep.z += (dz / length) * dt * 0.42;
+      const speed = chasing ? 1.25 : 0.42;
+      actor.wanderStep.x += (moveX / moveLength) * dt * speed;
+      actor.wanderStep.z += (moveZ / moveLength) * dt * speed;
       if (canMove(actor.root.position, actor.wanderStep)) {
         actor.root.position.copy(actor.wanderStep);
         actor.root.position.y = height(actor.root.position.x, actor.root.position.z);
       } else {
         actor.wanderAngle += Math.PI * 0.65;
       }
-      actor.root.rotation.y = Math.atan2(dx, dz);
+      actor.root.rotation.y = Math.atan2(moveX, moveZ);
     }
-    actor.controller?.setMotion(isBeingHit ? 'attack' : roaming ? 'walk' : 'idle');
+    actor.controller?.setMotion(isBeingHit ? 'strike' : isAttacking ? 'attack' : chasing ? 'run' : roaming ? 'walk' : 'idle');
     actor.controller?.update(time);
   }
 
