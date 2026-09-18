@@ -123,6 +123,10 @@
       <span>MISSÕES</span><kbd>Q</kbd>
     </button>
 
+    <button class="dock-btn" id="btn-dock-shop" title="Loja de Armia [L]">
+      <span>LOJA</span><kbd>L</kbd>
+    </button>
+
   </aside>
 
   <section id="minimap" title="Clique para caminhar · M para ocultar">
@@ -358,6 +362,11 @@
         </button>
       </div>
     </div>
+  </section>
+
+  <section id="shop-window" class="modal-window is-hidden" aria-label="Loja de Armia">
+    <header class="modal-header"><div class="modal-title"><h3>LOJA DE ARMIA</h3></div><button class="window-close-btn" data-close="shop-window" aria-label="Fechar loja">×</button></header>
+    <div class="modal-body shop-body"><p class="shop-intro">Suprimentos para continuar a caçada.</p><div id="shop-list" class="shop-list"></div><div class="shop-balance">Seu ouro: <strong id="shop-gold">0</strong></div></div>
   </section>
 
   <!-- Log de Combate e Sistema (Inferior Esquerdo) -->

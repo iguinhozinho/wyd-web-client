@@ -919,10 +919,36 @@ function toggleWindow(id, dockBtnId) {
   }
 }
 
+const shopStock = [400, 403, 420, 3000];
+function renderShop() {
+  const list = $('shop-list');
+  if (!list) return;
+  $('shop-gold').textContent = state.gold.toLocaleString('pt-BR');
+  list.innerHTML = shopStock.map((itemId) => {
+    const def = ITEM_DEFS[itemId];
+    if (!def) return '';
+    return `<button class="shop-item" data-buy-item="${itemId}"><span>${def.name}</span><strong>${Number(def.price || 0).toLocaleString('pt-BR')} Ouro</strong></button>`;
+  }).join('');
+  list.querySelectorAll('[data-buy-item]').forEach((button) => {
+    button.onclick = () => {
+      const itemId = Number(button.dataset.buyItem);
+      const def = ITEM_DEFS[itemId];
+      if (!def || state.gold < def.price) return log('Ouro insuficiente.');
+      state.gold -= def.price;
+      const existing = state.inventory.find((item) => item.itemId === itemId && !item.refine);
+      if (existing) existing.count = (existing.count || 1) + 1;
+      else if (state.inventory.length < 20) state.inventory.push({ itemId, count: 1 });
+      else { state.gold += def.price; return log('Inventário cheio.'); }
+      sfx.inventory(); save(); updateUI(); renderShop(); log(`Comprado: ${def.name}.`);
+    };
+  });
+}
+
 $('btn-dock-status').onclick = () => toggleWindow('character-window', 'btn-dock-status');
 $('btn-dock-inv').onclick = () => toggleWindow('inventory-window', 'btn-dock-inv');
 $('btn-dock-skills').onclick = () => toggleWindow('skills-window', 'btn-dock-skills');
 $('btn-dock-quests').onclick = () => toggleWindow('quests-window', 'btn-dock-quests');
+$('btn-dock-shop').onclick = () => { renderShop(); toggleWindow('shop-window', 'btn-dock-shop'); };
 $('btn-help').onclick = () => toggleWindow('help-window');
 document.querySelectorAll('.window-close-btn').forEach((btn) => {
   btn.onclick = () => {
@@ -974,6 +1000,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'Digit3') castSkill('bash');
   if (e.code === 'Digit4') castSkill('heal');
   if (e.code === 'Digit5') $('slot-5').click();
+  if (e.code === 'KeyL') $('btn-dock-shop').click();
   if (e.code === 'Space') hit();
   if (e.code === 'Escape') {
     closeAllWindows();
